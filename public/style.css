@@ -1,0 +1,330 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  min-height: 100vh;
+  color: #e0e0e0;
+}
+
+header {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+header h1 {
+  font-size: 2rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #90caf9;
+  font-size: 1.1rem;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+section {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+section h2 {
+  color: #90caf9;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  color: #b0bec5;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.3);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #64b5f6;
+  box-shadow: 0 0 0 2px rgba(100,181,246,0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: #fff;
+  border: none;
+  padding: 0.9rem 2.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1e88e5, #1976d2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(25,118,210,0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.8rem;
+}
+
+.rate-card {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 0.8rem;
+  text-align: center;
+}
+
+.rate-card .currency {
+  font-weight: bold;
+  color: #64b5f6;
+  font-size: 0.9rem;
+}
+
+.rate-card .value {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-top: 0.3rem;
+}
+
+.rates-note {
+  margin-top: 0.8rem;
+  font-size: 0.75rem;
+  color: #78909c;
+  text-align: right;
+}
+
+.results-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 0.5rem;
+}
+
+.tab {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #b0bec5;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background: rgba(25,118,210,0.3);
+  color: #fff;
+  border-color: #1976d2;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.flight-card, .hotel-card {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 1.2rem;
+  transition: all 0.2s;
+}
+
+.flight-card:hover, .hotel-card:hover {
+  border-color: #64b5f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.flight-card .price, .hotel-card .price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4caf50;
+  margin-bottom: 0.5rem;
+}
+
+.flight-card .price-try, .hotel-card .price-try {
+  font-size: 1rem;
+  color: #81c784;
+  margin-bottom: 0.8rem;
+}
+
+.flight-card .route {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.flight-card .details, .hotel-card .details {
+  font-size: 0.85rem;
+  color: #b0bec5;
+  line-height: 1.6;
+}
+
+.hotel-card .name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.hotel-card .rating {
+  color: #ffd54f;
+  margin-bottom: 0.5rem;
+}
+
+.summary-box {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(76,175,80,0.3);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.summary-box h3 {
+  color: #4caf50;
+  margin-bottom: 1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.summary-row.total {
+  border-top: 2px solid rgba(76,175,80,0.5);
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.destinations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem;
+}
+
+.dest-card {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.dest-card:hover {
+  border-color: #64b5f6;
+  background: rgba(25,118,210,0.15);
+  transform: translateY(-2px);
+}
+
+.dest-card .city {
+  font-weight: bold;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.dest-card .country {
+  color: #90caf9;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.loading {
+  color: #78909c;
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-msg {
+  background: rgba(244,67,54,0.15);
+  border: 1px solid rgba(244,67,54,0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  color: #ef9a9a;
+}
+
+.api-warning {
+  background: rgba(255,152,0,0.15);
+  border: 1px solid rgba(255,152,0,0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  color: #ffcc80;
+  margin-bottom: 1rem;
+}
+
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: #78909c;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  header h1 { font-size: 1.5rem; }
+  .form-grid { grid-template-columns: 1fr; }
+  .cards-grid { grid-template-columns: 1fr; }
+}

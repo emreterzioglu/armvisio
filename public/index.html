@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tatil Maliyet Karşılaştırıcı</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>✈️ Tatil Maliyet Karşılaştırıcı</h1>
+    <p class="subtitle">Güncel kurlar ve fiyatlarla yurtdışı tatil bütçeni planla</p>
+  </header>
+
+  <main>
+    <section class="search-panel">
+      <h2>Arama Kriterleri</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="origin">Kalkış Havalimanı (IATA Kodu)</label>
+          <input type="text" id="origin" value="IST" placeholder="IST, SAW, ESB...">
+        </div>
+        <div class="form-group">
+          <label for="destination">Varış Şehri</label>
+          <select id="destination">
+            <option value="">Bir şehir seçin...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="depart-date">Gidiş Tarihi</label>
+          <input type="date" id="depart-date">
+        </div>
+        <div class="form-group">
+          <label for="return-date">Dönüş Tarihi</label>
+          <input type="date" id="return-date">
+        </div>
+        <div class="form-group">
+          <label for="adults">Kişi Sayısı</label>
+          <input type="number" id="adults" value="2" min="1" max="9">
+        </div>
+        <div class="form-group">
+          <label for="rooms">Oda Sayısı</label>
+          <input type="number" id="rooms" value="1" min="1" max="5">
+        </div>
+      </div>
+      <button id="search-btn" class="btn-primary">Ara ve Karşılaştır</button>
+    </section>
+
+    <section class="rates-panel">
+      <h2>Güncel Döviz Kurları (1 TRY =)</h2>
+      <div id="rates-container" class="rates-grid">
+        <p class="loading">Kurlar yükleniyor...</p>
+      </div>
+      <p class="rates-note">Kaynak: Avrupa Merkez Bankası (ECB) - Frankfurter API</p>
+    </section>
+
+    <section id="results" class="results-panel" style="display:none;">
+      <h2>Sonuçlar</h2>
+
+      <div class="results-tabs">
+        <button class="tab active" data-tab="flights">Uçak Biletleri</button>
+        <button class="tab" data-tab="hotels">Oteller</button>
+        <button class="tab" data-tab="summary">Toplam Maliyet</button>
+      </div>
+
+      <div id="tab-flights" class="tab-content active">
+        <div id="flights-list" class="cards-grid"></div>
+      </div>
+
+      <div id="tab-hotels" class="tab-content">
+        <div id="hotels-list" class="cards-grid"></div>
+      </div>
+
+      <div id="tab-summary" class="tab-content">
+        <div id="summary-content"></div>
+      </div>
+    </section>
+
+    <section class="info-panel">
+      <h2>Popüler Destinasyonlar</h2>
+      <div id="destinations-grid" class="destinations-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Veriler Amadeus API ve ECB kurları üzerinden güncel olarak alınmaktadır.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
