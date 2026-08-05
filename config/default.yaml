@@ -1,0 +1,84 @@
+# armvisio default configuration
+# User copy: ~/.config/armvisio/config.yaml (overrides this file)
+
+# ---------- AI backends ----------
+ai:
+  # Router policy:
+  #   "local_first" -> try ollama, fall back to anthropic if unhealthy
+  #   "cloud_first" -> try anthropic, fall back to ollama
+  #   "local_only"  -> ollama only
+  #   "cloud_only"  -> anthropic only
+  policy: local_first
+
+  # Anything longer than this (chars in prompt) is escalated to cloud
+  # (only meaningful under local_first). Set to 0 to disable escalation.
+  escalate_over_chars: 4000
+
+  ollama:
+    enabled: true
+    base_url: http://127.0.0.1:11434
+    model: qwen2.5:3b
+    # Keep the context window modest; Pi 5 CPU/RAM friendly.
+    num_ctx: 4096
+    temperature: 0.3
+    # Timeout (seconds) for a full response.
+    timeout: 120
+
+  anthropic:
+    enabled: false
+    # ANTHROPIC_API_KEY environment variable is used when this is empty.
+    api_key: ""
+    model: claude-sonnet-5
+    max_tokens: 2048
+    temperature: 0.3
+
+# ---------- Hailo AI HAT+ ----------
+hailo:
+  # Set to false to fully disable Hailo probing at startup.
+  enabled: true
+  # HEF (Hailo Executable Format) files for CV tasks.
+  # These files are user-provided; leave empty to disable a task.
+  models:
+    pcb_inspect: ""      # e.g. /opt/hailo/models/yolov8n_pcb.hef
+    rf_spectrum: ""      # e.g. /opt/hailo/models/spectrum_cls.hef
+
+# ---------- Safety / execution ----------
+execution:
+  # dry_run=true: commands are logged and shown to the AI, but never executed.
+  # Useful when you first learn the tool.
+  dry_run: false
+  # Confirm before running anything not in the allowlist.
+  confirm_unlisted: true
+  # Commands the executor is allowed to run without prompting.
+  # Everything else asks for confirmation (or is refused in strict mode).
+  allowlist:
+    - iw
+    - iwconfig
+    - iwlist
+    - airmon-ng
+    - airodump-ng
+    - aireplay-ng
+    - aircrack-ng
+    - kismet
+    - hcxdumptool
+    - hcxpcapngtool
+    - nmap
+    - masscan
+    - tcpdump
+    - avahi-browse
+    - mosquitto_sub
+    - mosquitto_pub
+    - bluetoothctl
+    - hcitool
+    - btmgmt
+    - lsusb
+    - lspci
+    - dmesg
+    - ip
+    - ss
+
+# ---------- UI ----------
+ui:
+  theme: dark
+  # Where transcripts of sessions are saved.
+  transcript_dir: ~/.local/share/armvisio/sessions
