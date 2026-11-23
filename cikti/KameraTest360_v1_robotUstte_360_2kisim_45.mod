@@ -10,7 +10,11 @@ MODULE KameraTest360
     ! Tum noktalar robot tabani (wobj0). Fotograf noktalari CAD tup eksenine gore; ince ayarda ModPos ile guncellenir.
     ! 45 MM BOSLUK: parca platformu robot masasindan 45 mm uzaklastirildi (robot tabani +Y, fiziksel +X).
     !   Parcaya bagli tum noktalar (pUst..pFoto12, pRef) Y +45 kaydirildi. HOME degismedi.
-    !   Istasyon: istasyon_robot_tabani_45bosluk.step / istasyon_fiziksel_zemin0_45bosluk.step
+    ! ROBOTSTUDIO YERLESIMI:
+    !   istasyon_fiziksel_zemin0_45bosluk.step -> konum (0,0,0), donus 0 (zemin Z=0, masa ustu Z=820, platform +X)
+    !   Robot -> konum (0,0,820), donus Z = -90 derece (tepeden bakinca saat yonunde 90)
+    !   Bu kod robot tabanina (wobj0) gore yazildi; gercek robotta kaydedilen referanslar parcayi taban +Y'de gosteriyor.
+    !   Robot RobotStudio'da donmeden birakilirsa noktalar parcaya 90 derece kayik gorunur.
     ! ROBOT KAMERANIN USTUNDE: tKamera yonu eski braketle ayni (Rz -90) -> eksen 6 eski kodla ayni yonde calisir.
     !   Flans tum turda tup merkezi seviyesinde ya da ustunde (Z 330-478; tup merkezi Z 341).
     !   BEDELI: kamera goruntusu eski koda gore 180 derece donuk gelir (tup yine yatay ve ortada, yesil ok SAGA bakar).
