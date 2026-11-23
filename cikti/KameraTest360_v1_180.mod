@@ -1,9 +1,9 @@
 MODULE KameraTest360
     ! TCP = TUPUN MERKEZ CIZGISI. Robot hep bu noktanin etrafinda doner; TCP hic yer degistirmez.
-    ! BRAKET v1 (eoat_assembly_v1.STEP) - DENEME TAKIMI, kesinlesmis degil
-    ! tKamera Z = 56.000 (kamera on yuzu) + 90 (lens) + 86 (odak) + 3.945 (tup yaricapi) = 235.945 mm
-    ! tKamera X,Y = 67.511, 19.6 (optik eksenin flans merkezine yanal uzakligi, CAD)
-    ! Varsayim: braket flansa, kamera goruntu yonu eski braketle AYNI kalacak sekilde takilir.
+    ! YENI BRAKET v1 (eoat_assembly_v1.STEP), flans ekseni etrafinda 180 derece donuk takili - DENEME
+    ! tKamera Z = 65.480 (lens baglanti yuzu, v1 CAD) + 79.500 (lens, MLM-3XMP CAD)
+    !           + 86 (lens metal ucu -> tup yuzeyi) + 3.945 (tup yaricapi) = 235.945 mm
+    ! tKamera X,Y = -67.511, -19.6 (optik eksenin flans merkezine uzakligi, CAD, 180 derece donuk)
     ! Net goruntu noktasi tup yuzeyi (TCP'den 3.945 mm once). Kamera her acida tupe dik ve merkeze bakar.
     !
     ! ISTASYON: istasyon_robot_tabani.step -> robot RobotStudio'da (0,0,0), donus 0, dosya (0,0,0).
@@ -13,13 +13,12 @@ MODULE KameraTest360
     ! Her nokta gercek robotta ortalanip yataylanip ModPos ile kaydedilebilir.
     ! Fotolar arasi MoveL: TCP (tup merkezi) sabit kalir, robot yalnizca yonelimi dondurur.
     ! Kutle 0.5 kg / agirlik merkezi YER TUTUCU
-    PERS tooldata tKamera := [TRUE,[[67.511,19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
+    PERS tooldata tKamera := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
 
     CONST bool bHomeKullan := TRUE;
 
-    ! HOME: robot durusu (flans) eskisiyle ayni; deger yeni TCP'ye gore yeniden hesaplandi
-    ! Ara nokta, yaklasma, fotolar: kameranin tupe gore konumu ayni (flans ~84 mm farkli yerde)
-    CONST robtarget pHomeKul := [[-352.632,406.823,391.374],[0.4117930,0.5867360,-0.3940890,-0.5752060],[1,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+    ! HOME: robot durusu (flans) onceki kodla ayni, deger yeni TCP'ye gore. Ara nokta/yaklasma/fotolar: TCP = tup merkezi, degismedi
+    CONST robtarget pHomeKul := [[-348.870,279.502,343.717],[0.5752058,-0.3940889,-0.5867358,0.4117929],[1,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
     CONST robtarget pAra := [[-166.134,568.134,496.308],[0.3245152,0.5413259,0.4779064,0.6109514],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
     CONST robtarget pYaklas := [[-166.134,568.134,346.308],[0.3245152,0.5413259,0.4779064,0.6109514],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
 
@@ -63,7 +62,6 @@ MODULE KameraTest360
         MoveL pFoto3, vKamDonus, z1, tKamera;
         MoveL pFoto2, vKamDonus, z1, tKamera;
         MoveL pFoto1, vKamDonus, fine, tKamera;
-        ConfL \On;
         Cikis;
         TPWrite "Toplam foto: " \Num:=nFoto;
     ENDPROC
@@ -77,14 +75,20 @@ MODULE KameraTest360
     PROC Giris()
         ConfJ \On;
         IF bHomeKullan MoveJ pHomeKul, v100, fine, tKamera;
+        ! Braket 180 derece donuk: eksen 6 eskisine gore 180 derece farkli. Noktalardaki cf6 eski brakete gore,
+        ! bu yuzden konfigurasyon kontrolu kapali. RobotStudio'da eksen 6'nin donus yonunu ve kabloyu kontrol edin.
+        ConfJ \Off;
+        ConfL \Off;
         MoveJ pAra, v100, fine, tKamera;
         MoveL pYaklas, v100, fine, tKamera;
         MoveL pFoto1, v50, fine, tKamera;
     ENDPROC
 
     PROC Cikis()
+        ConfL \Off;
         MoveL pYaklas, v50, fine, tKamera;
         MoveL pAra, v100, fine, tKamera;
+        ConfL \On;
         ConfJ \On;
         IF bHomeKullan MoveJ pHomeKul, v100, fine, tKamera;
     ENDPROC
