@@ -8,7 +8,8 @@ MODULE KameraTest360
     !   tKamera: TCP = tup merkezi. Z = 56.0 (kamera on yuzu, v1 CAD) + 90 (lens, olculen) + 86 (odak) + 3.945 = 235.945
     !   tUc    : TCP = lens ucu.    Z = 56.0 + 90 = 146.0  (tarama bununla yapilir: uc tupun etrafinda daire cizer)
     !   Kamera yakin/uzak bakiyorsa IKISININ Z'sini AYNI miktar degistirin (+ uzaklastirir).
-    ! Foto tetigi: doKameraTetik dijital cikisi (I/O konfigurasyonunda TANIMLANMALI, isim yer tutucu).
+    ! Foto tetigi: dijital cikis YOK. Her foto noktasinda kamera PC'sine TCP soketle "TRIG;n;" gonderilir
+    !   (kamera_sunucu.py). bKamera := FALSE yapilirsa PC'siz calisir (sadece hareket + sayac).
     ! HOME (pHomeKul): tupun ucunun ustu, tup ekseni boyunca asagi bakis (lens ucu tup ucundan 86 mm).
     ! Program baslarken robot HOME'da degilse: once Z'de 150 mm dik kalkis, sonra HOME (EveDon).
     ! Noktalar robot tabani (wobj0), 45 mm bosluklu istasyon. Kutle/agirlik merkezi YER TUTUCU.
@@ -37,6 +38,11 @@ MODULE KameraTest360
     VAR speeddata vTara := [150,90,5000,1000];    ! tarama: 90 derece/s -> 30 derece ~0.33 s, 330 derece ~3.7 s
     VAR speeddata vGecis := [300,180,5000,1000];  ! HOME <-> tarama gecisi
     CONST num nKalkis := 30;                      ! son fotodan sonra dik kalkis (mm)
+    ! Kamera PC baglantisi
+    CONST bool bKamera := FALSE;           ! TRUE: kamera PC'sine baglan ve tetik gonder
+    PERS string sPcIp := "192.168.1.10";   ! kamera PC'sinin robota bakan IP'si
+    PERS num nPcPort := 5000;              ! kamera_sunucu.py ile ayni
+    VAR socketdev sockKam;
     VAR triggdata trFoto;
     VAR intnum iFoto;
     VAR num nFoto;
@@ -47,6 +53,7 @@ MODULE KameraTest360
         SingArea \Wrist;
         IF Distance(CPos(\Tool:=tKamera \WObj:=wobj0), pHomeKul.trans) > 5 EveDon;
         nFoto := 0;
+        IF bKamera KameraBaglan;
         CONNECT iFoto WITH FotoTrap;
         TriggInt trFoto, 0, iFoto;
         ! HOME -> foto 1 (dogrudan), foto 1..12 durmadan
@@ -58,13 +65,26 @@ MODULE KameraTest360
         MoveL Offs(pUc{12}, 0, 0, nKalkis), vGecis, z10, tUc;
         MoveL pHomeKul, vGecis, fine, tKamera;
         IDelete iFoto;
+        IF bKamera THEN
+            SocketSend sockKam \Str:="END;";
+            SocketClose sockKam;
+        ENDIF
         TPWrite "Toplam foto: " \Num:=nFoto;
     ENDPROC
 
     TRAP FotoTrap
         nFoto := nFoto + 1;
-        PulseDO \PLength:=0.02, doKameraTetik;
+        IF bKamera SocketSend sockKam \Str:="TRIG;" + NumToStr(nFoto, 0) + ";";
     ENDTRAP
+
+    PROC KameraBaglan()
+        SocketClose sockKam;
+        SocketCreate sockKam;
+        SocketConnect sockKam, sPcIp, nPcPort \Time:=5;
+    ERROR
+        TPWrite "Kamera PC'sine baglanilamadi: " + sPcIp;
+        Stop;
+    ENDPROC
 
     ! Bulundugu yerden Z'de 150 mm dik kalk, sonra HOME
     PROC EveDon()
