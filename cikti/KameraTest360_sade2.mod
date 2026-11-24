@@ -1,13 +1,12 @@
 MODULE KameraTest360
     ! Yeni braket (v1, flansa 180 derece donuk) + Computar lens. Robot kameranin ustunde.
-    ! HOME -> tek yonde 330 derece, 12 foto durmadan -> HOME
+    ! Bekleme noktasi: ilk fotonun (+90) optik eksen boyunca 120 mm gerisi.
+    ! Cevrim: iceri -> tek yonde 330 derece, 12 foto durmadan -> ayni yaydan hizla geri -> bekleme noktasina cik.
+    ! Robot her cevrimi ayni noktada bitirir; eksen 4 ve kablo her seferinde ayni durumdan baslar.
     ! Sira: +90, +120, +150, -180, -150, -120, -90, -60, -30, 0, +30, +60
     ! Noktalar robot tabani (wobj0). Konfigurasyon kontrolu KAPALI (eksen 4 surekli; bilek normal duruşta kalir).
     PERS tooldata tKamera := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];  ! TCP = tup merkezi
     PERS tooldata tUc := [TRUE,[[-67.511,-19.6,146.0],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];      ! TCP = lens ucu
-
-    ! HOME: tupun ucunun ustu (robotun daha once ulastigi deger)
-    CONST robtarget pHomeKul := [[-48.101,637.090,352.293],[0.0940770,-0.7699387,0.6122421,0.1533083],[0,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
 
     ! 12 foto noktasi (tKamera). Kullanicinin degerleri; pFoto8 haric (bkz. not).
     CONST robtarget pFoto1 := [[-49.40,642.80,344.60],[0.324493,0.54145,0.477769,0.610961],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! 0 derece
@@ -26,7 +25,6 @@ MODULE KameraTest360
     CONST num nSira{12} := [10,11,12,7,6,5,4,3,2,1,8,9];
     CONST num nUc := 89.945;     ! lens ucu -> tup merkezi
     CONST num nGeri := 120;      ! giris: ilk fotonun optik eksen boyunca gerisi (mm)
-    CONST num nKalkis := 50;     ! cikis: dik kalkis (mm)
     VAR speeddata vTara := [150,90,5000,1000];
     VAR speeddata vGecis := [300,180,5000,1000];
     VAR triggdata trFoto;
@@ -39,19 +37,25 @@ MODULE KameraTest360
         nFoto := 0;
         CONNECT iFoto WITH FotoTrap;
         TriggInt trFoto, 0, iFoto;
-        MoveL RelTool(pFoto10, 0, 0, -nGeri), vGecis, z10, tKamera;
+        ConfJ \Off;
+        MoveJ RelTool(pFoto10, 0, 0, -nGeri), v100, fine, tKamera;   ! bekleme noktasi (zaten oradaysa hareket yok)
         FOR i FROM 1 TO 12 DO
             TriggL RelTool(Foto(nSira{i}), 0, 0, -nUc), vTara, trFoto, z1, tUc;
         ENDFOR
         IDelete iFoto;
-        EveDon;
+        ! Ayni yaydan hizla geri +90'a (kablo cozulur, bilek her cevrimde ayni yerden baslar), sonra disari
+        FOR i FROM 11 TO 1 STEP -1 DO
+            MoveL Foto(nSira{i}), vGecis, z10, tKamera;
+        ENDFOR
+        MoveL RelTool(pFoto10, 0, 0, -nGeri), vGecis, fine, tKamera;
         TPWrite "Toplam foto: " \Num:=nFoto;
     ENDPROC
 
     ! Ogretme: ayni yol, her fotoda durur -> ince ayar -> o satirda ModPos
     PROC Ogret()
         Hazirla;
-        MoveL RelTool(pFoto10, 0, 0, -nGeri), v50, fine, tKamera;
+        ConfJ \Off;
+        MoveJ RelTool(pFoto10, 0, 0, -nGeri), v50, fine, tKamera;
         MoveL pFoto10, v20, fine, tKamera;
         Stop;
         MoveL pFoto11, v20, fine, tKamera;
@@ -76,26 +80,15 @@ MODULE KameraTest360
         Stop;
         MoveL pFoto9, v20, fine, tKamera;
         Stop;
-        EveDon;
+        MoveL RelTool(pFoto9, 0, 0, -nGeri), v50, fine, tKamera;
     ENDPROC
 
-    ! Takimlari ayarla, HOME'da degilse HOME'a git
+    ! Takimlari ayarla
     PROC Hazirla()
         tKamera := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
         tUc := [TRUE,[[-67.511,-19.6,146.0],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
         ConfL \Off;
         SingArea \Wrist;
-        IF Distance(CPos(\Tool:=tKamera \WObj:=wobj0), pHomeKul.trans) > 5 EveDon;
-    ENDPROC
-
-    ! Z'de dik kalk, HOME'a EKLEM hareketiyle git (MoveL'de eksen 4 sinira takiliyordu)
-    PROC EveDon()
-        VAR robtarget p;
-        p := CRobT(\Tool:=tKamera \WObj:=wobj0);
-        MoveL Offs(p, 0, 0, nKalkis), v100, fine, tKamera;
-        ConfJ \Off;
-        MoveJ pHomeKul, v100, fine, tKamera;
-        ConfJ \On;
     ENDPROC
 
     FUNC robtarget Foto(num i)
