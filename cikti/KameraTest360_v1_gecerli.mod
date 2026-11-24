@@ -3,7 +3,7 @@ MODULE KameraTest360
     ! HIZLI SUREKLI TARAMA: HOME -> 12 foto -> HOME, robot arada hic durmaz; 12 foto hareket halinde cekilir.
     !   Yol kisa tutuldu: HOME'dan dogrudan ilk fotoya, son fotodan 30 mm dik kalkip dogrudan HOME'a.
     !   HOME'un kendi ekseni etrafindaki acisi ilk (+60) ve son (+90) fotonun ortasina (+75) alindi -> giris/cikista ~90 derece donus.
-    !   Sira: +60, +30, 0, -30, -60, -90, -120, -150, -180, +150, +120, +90  (tek yonde 330 derece)
+    !   Sira: +90, +120, +150, -180, -150, -120, -90, -60, -30, 0, +30, +60  (tek yonde 330 derece)
     ! Iki takim, ayni montaj:
     !   tKamera: TCP = tup merkezi. Z = 56.0 (kamera on yuzu, v1 CAD) + 90 (lens, olculen) + 86 (odak) + 3.945 = 235.945
     !   tUc    : TCP = lens ucu.    Z = 56.0 + 90 = 146.0  (tarama bununla yapilir; noktalar pFoto'lardan otomatik turetilir)
@@ -33,9 +33,12 @@ MODULE KameraTest360
     CONST robtarget pFoto10 := [[-52.25,644.29,345.86],[0.108464,0.0492315,-0.567399,-0.814782],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece  (OGRETILDI)
     CONST robtarget pFoto11 := [[-53.15,643.22,344.42],[0.251616,0.25843,-0.519996,-0.774279],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +120 derece  (OGRETILDI)
     CONST robtarget pFoto12 := [[-53.20,643.14,345.41],[0.3776262,0.4500229,-0.4371541,-0.6810097],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +150 derece (TAHMIN, ogretilecek)
-    ! Cekim sirasi (tek yonde, eksi yonde 330 derece): +60,+30,0,-30,-60,-90,-120,-150,-180,+150,+120,+90
-    !   Bu yon, ogretilen noktalarin eksen 4 dalina (robconf) uyuyor; +60 basta, +90 sonda.
-    CONST num nSira{12} := [9,8,1,2,3,4,5,6,7,12,11,10];
+    ! Cekim sirasi (tek yonde 330 derece): +90,+120,+150,-180,-150,-120,-90,-60,-30,0,+30,+60
+    !   Giris OGRETILMIS pFoto10'un (+90) eksen konfigurasyonuyla yapilir (MoveJ, ConfJ\On): eksen 4 her cevrimde
+    !   ayni daldan baslar. Sonra durmadan, konfigurasyon kontrolu kapali (eksen 4 surekli) taranir.
+    CONST num nSira{12} := [10,11,12,7,6,5,4,3,2,1,8,9];
+    CONST num nGeri := 120;    ! giris: pFoto10'dan optik eksen boyunca geri (mm)
+    CONST num nYukari := 100;  ! giris: ustune (mm)
     CONST num nUc := 89.945;   ! lens ucu -> tup merkezi (86 + 3.945)
 
     ! HIZLAR (robot kendi eksen hiz sinirinda daha yavas gidebilir; kamera fps'ine gore ayarlayin)
@@ -63,9 +66,10 @@ MODULE KameraTest360
         IF bKamera KameraBaglan;
         CONNECT iFoto WITH FotoTrap;
         TriggInt trFoto, 0, iFoto;
-        ! HOME -> foto 1 (dogrudan), foto 1..12 durmadan
+        ! Giris: ogretilmis konfigurasyonla pFoto10'un geri-ustune (MoveJ), sonra optik eksen boyunca ice; foto 1..12 durmadan
+        Giris;
         ! (tarama lens ucu takimi tUc ile: ogretilen tKamera noktasi optik eksen boyunca nUc geri = ayni flans pozu)
-        TriggL RelTool(Foto(nSira{1}), 0, 0, -nUc), vGecis, trFoto, z1, tUc;
+        TriggL RelTool(Foto(nSira{1}), 0, 0, -nUc), vGecis, trFoto, z1, tUc;   ! foto 1 (+90)
         FOR i FROM 2 TO 12 DO
             TriggL RelTool(Foto(nSira{i}), 0, 0, -nUc), vTara, trFoto, z1, tUc;
         ENDFOR
@@ -82,32 +86,32 @@ MODULE KameraTest360
 
     ! OGRETME: PP'yi bu rutine alin. Her noktada durur -> tool'da lineer ince ayar -> MoveL satirinda ModPos -> devam.
     PROC Ogret()
-        ConfL \Off;
         SingArea \Wrist;
         IF Distance(CPos(\Tool:=tKamera \WObj:=wobj0), pHomeKul.trans) > 5 EveDon;
-        MoveL pFoto9, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto8, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto1, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto2, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto3, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto4, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto5, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto6, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto7, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto12, v20, fine, tKamera;
+        Giris;
+        MoveL pFoto10, v20, fine, tKamera;
         Stop;
         MoveL pFoto11, v20, fine, tKamera;
         Stop;
-        MoveL pFoto10, v20, fine, tKamera;
+        MoveL pFoto12, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto7, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto6, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto5, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto4, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto3, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto2, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto1, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto8, v20, fine, tKamera;
+        Stop;
+        MoveL pFoto9, v20, fine, tKamera;
         Stop;
         EveDon;
     ENDPROC
@@ -129,8 +133,20 @@ MODULE KameraTest360
         ENDTEST
     ENDFUNC
 
+    ! pFoto10'un OGRETILMIS robconf'u ile (eksen 4 dogru dalda) yaklas
+    PROC Giris()
+        ConfJ \On;
+        MoveJ Offs(RelTool(pFoto10, 0, 0, -nGeri), 0, 0, nYukari), vGecis, z10, tKamera;
+        ConfL \Off;
+        MoveL RelTool(pFoto10, 0, 0, -nGeri), vGecis, z5, tKamera;
+    ENDPROC
+
     TRAP FotoTrap
+        VAR jointtarget jt;
         nFoto := nFoto + 1;
+        jt := CJointT();
+        TPWrite "Foto " \Num:=nFoto;
+        TPWrite "  J4=" \Num:=jt.robax.rax_4;
         IF bKamera SocketSend sockKam \Str:="TRIG;" + NumToStr(nFoto, 0) + ";";
     ENDTRAP
 
