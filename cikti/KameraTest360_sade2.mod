@@ -88,12 +88,14 @@ MODULE KameraTest360
         IF Distance(CPos(\Tool:=tKamera \WObj:=wobj0), pHomeKul.trans) > 5 EveDon;
     ENDPROC
 
-    ! Z'de dik kalk, HOME'a dogrusal git
+    ! Z'de dik kalk, HOME'a EKLEM hareketiyle git (MoveL'de eksen 4 sinira takiliyordu)
     PROC EveDon()
         VAR robtarget p;
         p := CRobT(\Tool:=tKamera \WObj:=wobj0);
-        MoveL Offs(p, 0, 0, nKalkis), v100, z10, tKamera;
-        MoveL pHomeKul, v100, fine, tKamera;
+        MoveL Offs(p, 0, 0, nKalkis), v100, fine, tKamera;
+        ConfJ \Off;
+        MoveJ pHomeKul, v100, fine, tKamera;
+        ConfJ \On;
     ENDPROC
 
     FUNC robtarget Foto(num i)
