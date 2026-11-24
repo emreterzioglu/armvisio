@@ -41,8 +41,9 @@ MODULE KameraTest360
         TriggInt trFoto, 0, iFoto;
         ConfJ \Off;
         MoveJ RelTool(pFoto10, 0, 0, -nGeri), v100, fine, tKamera;   ! bekleme noktasi (zaten oradaysa hareket yok)
+        Eksen "Bekleme";
         FOR i FROM 1 TO 12 DO
-            TriggL RelTool(Foto(nSira{i}), 0, 0, -nUc), vTara, trFoto, z0, tUc;   ! z0: foto aninda noktadan en fazla 0.3 mm
+            TriggL RelTool(Foto(nSira{i}), 0, 0, -nUc), vTara, trFoto, z1, tUc;
         ENDFOR
         IDelete iFoto;
         ! Ayni yaydan hizla geri +90'a (kablo cozulur, bilek her cevrimde ayni yerden baslar), sonra disari
@@ -91,6 +92,13 @@ MODULE KameraTest360
         tUc := [TRUE,[[-67.511,-19.913,144.457],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
         ConfL \Off;
         SingArea \Wrist;
+    ENDPROC
+
+    ! Eksen 4 ve 5'i pendant'a yaz (bilek durusu kontrolu)
+    PROC Eksen(string s)
+        VAR jointtarget j;
+        j := CJointT();
+        TPWrite s + " J4=" + NumToStr(j.robax.rax_4, 1) + " J5=" + NumToStr(j.robax.rax_5, 1);
     ENDPROC
 
     FUNC robtarget Foto(num i)
