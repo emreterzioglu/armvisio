@@ -10,13 +10,14 @@ MODULE KameraTest360
     !   Kamera yakin/uzak bakiyorsa IKISININ Z'sini AYNI miktar degistirin (+ uzaklastirir).
     ! Foto tetigi: dijital cikis YOK. Her foto noktasinda kamera PC'sine TCP soketle "TRIG;n;" gonderilir
     !   (kamera_sunucu.py). bKamera := FALSE yapilirsa PC'siz calisir (sadece hareket + sayac).
-    ! HOME (pHomeKul): ROBOTTA OGRETILECEK (tupun ucunun ustu). Koddaki deger hesaplanan baslangic, ulasilamadi.
+    ! HOME (pHomeKul): tupun ucunun ustu. Bu deger robotun daha once ulastigi (sade surum) HOME; Ogret'te ModPos yapilacak
+    !   (gercek eksen konfigurasyonu kaydedilsin diye). main ve EveDon HOME'a MoveJ + ConfJ\On ile gider.
     ! Program baslarken robot HOME'da degilse: once Z'de 150 mm dik kalkis, sonra HOME (EveDon).
     ! Noktalar robot tabani (wobj0), 45 mm bosluklu istasyon. Kutle/agirlik merkezi YER TUTUCU.
     PERS tooldata tKamera := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
     PERS tooldata tUc := [TRUE,[[-67.511,-19.6,146.0],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
 
-    CONST robtarget pHomeKul := [[-48.101,637.090,352.293],[0.0643572,-0.0170153,-0.9835428,-0.1679646],[0,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+    CONST robtarget pHomeKul := [[-48.101,637.090,352.293],[0.0940770,-0.7699387,0.6122421,0.1533083],[0,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
 
     ! 12 foto noktasi (tKamera, TCP = tup merkezi). Ogretme: Ogret rutini ile her noktada dur, ince ayar, ModPos.
     ! pFoto1-7, 10, 11: kullanicinin ogrettigi net konumlar. pFoto8 (+30), pFoto9 (+60), pFoto12 (+150):
@@ -34,8 +35,9 @@ MODULE KameraTest360
     CONST robtarget pFoto11 := [[-53.15,643.22,344.42],[0.251616,0.25843,-0.519996,-0.774279],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +120 derece  (OGRETILDI)
     CONST robtarget pFoto12 := [[-53.20,643.14,345.41],[0.3776262,0.4500229,-0.4371541,-0.6810097],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +150 derece (TAHMIN, ogretilecek)
     ! Cekim sirasi (tek yonde 330 derece): +90,+120,+150,-180,-150,-120,-90,-60,-30,0,+30,+60
-    !   Giris OGRETILMIS pFoto10'un (+90) eksen konfigurasyonuyla yapilir (MoveJ, ConfJ\On): eksen 4 her cevrimde
-    !   ayni daldan baslar. Sonra durmadan, konfigurasyon kontrolu kapali (eksen 4 surekli) taranir.
+    !   ONEMLI: pFoto10/11 onceki dosyada BILEK TERS iken ogretildi (robconf o duruşa ait). Ogret rutini bunlari
+    !   normal bilekte, -180'den eksi yonde donerek ziyaret eder; ModPos ile normal bilek robconf'u kaydedilir.
+    !   Giris bu robconf ile yapilir (MoveJ, ConfJ\On): eksen 4 her cevrimde ayni daldan baslar.
     CONST num nSira{12} := [10,11,12,7,6,5,4,3,2,1,8,9];
     CONST num nGeri := 120;    ! giris: pFoto10'dan optik eksen boyunca geri (mm)
     CONST num nYukari := 100;  ! giris: ustune (mm)
@@ -85,29 +87,33 @@ MODULE KameraTest360
         TPWrite "Toplam foto: " \Num:=nFoto;
     ENDPROC
 
-    ! OGRETME: PP'yi bu rutine alin. Her noktada durur -> tool'da lineer ince ayar -> MoveL satirinda ModPos -> devam.
+    ! OGRETME (once bunu calistirin). PP'yi bu rutine alin. Her Stop'ta: tool'da lineer ince ayar -> o MoveL satirinda ModPos.
+    !   Sira robotun normal bilek duruşunu korur: HOME -> -180 -> eksi yonde +150,+120,+90 -> geri -180 -> arti yonde 0,+30,+60.
     PROC Ogret()
+        VAR robtarget p;
+        ConfL \Off;
         SingArea \Wrist;
-        IF Distance(CPos(\Tool:=tKamera \WObj:=wobj0), pHomeKul.trans) > 5 EveDon;
-        Giris;
-        MoveL pFoto10, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto11, v20, fine, tKamera;
+        p := CRobT(\Tool:=tKamera \WObj:=wobj0);
+        MoveL Offs(p, 0, 0, nKalkis), v50, fine, tKamera;
+        MoveL pHomeKul, v50, fine, tKamera;
+        Stop;   ! HOME: ModPos (gerekirse once ince ayar)
+        MoveL RelTool(pFoto7, 0, 0, -nGeri), v50, fine, tKamera;
+        MoveL pFoto7, v20, fine, tKamera;
         Stop;
         MoveL pFoto12, v20, fine, tKamera;
         Stop;
-        MoveL pFoto7, v20, fine, tKamera;
+        MoveL pFoto11, v20, fine, tKamera;
         Stop;
-        MoveL pFoto6, v20, fine, tKamera;
+        MoveL pFoto10, v20, fine, tKamera;
         Stop;
-        MoveL pFoto5, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto4, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto3, v20, fine, tKamera;
-        Stop;
-        MoveL pFoto2, v20, fine, tKamera;
-        Stop;
+        MoveL pFoto11, v20, z1, tKamera;
+        MoveL pFoto12, v20, z1, tKamera;
+        MoveL pFoto7, v20, z1, tKamera;
+        MoveL pFoto6, v20, z1, tKamera;
+        MoveL pFoto5, v20, z1, tKamera;
+        MoveL pFoto4, v20, z1, tKamera;
+        MoveL pFoto3, v20, z1, tKamera;
+        MoveL pFoto2, v20, z1, tKamera;
         MoveL pFoto1, v20, fine, tKamera;
         Stop;
         MoveL pFoto8, v20, fine, tKamera;
