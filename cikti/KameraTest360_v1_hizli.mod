@@ -49,6 +49,9 @@ MODULE KameraTest360
 
     PROC main()
         VAR num i;
+        ! Eski modullerden kalan ayni isimli PERS takim degerlerini ez (yanlis TCP = robot yanlis yere gider)
+        tKamera := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
+        tUc := [TRUE,[[-67.511,-19.6,146.0],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
         ConfL \Off;
         SingArea \Wrist;
         IF Distance(CPos(\Tool:=tKamera \WObj:=wobj0), pHomeKul.trans) > 5 EveDon;
