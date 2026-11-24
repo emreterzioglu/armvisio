@@ -8,7 +8,8 @@ MODULE KameraTest360
     PERS tooldata tKamera := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];  ! TCP = tup merkezi
     PERS tooldata tUc := [TRUE,[[-67.511,-19.6,146.0],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];      ! TCP = lens ucu
 
-    ! 12 foto noktasi (tKamera). Kullanicinin degerleri; pFoto8 haric (bkz. not).
+    ! 12 foto noktasi (tKamera). pFoto1-7, 10, 11: kullanicinin ince ayarli degerleri (degismedi).
+    !   pFoto8, 9, 12: bu 10 noktadan hesaplanan gercek tup eksenine gore (10 noktanin hepsi bu eksene <= 0.93 mm oturuyor).
     CONST robtarget pFoto1 := [[-49.40,642.80,344.60],[0.324493,0.54145,0.477769,0.610961],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! 0 derece
     CONST robtarget pFoto2 := [[-50.32,641.69,344.65],[0.43715,0.681006,0.377632,0.450028],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -30 derece
     CONST robtarget pFoto3 := [[-51.00,641.08,344.70],[0.519992,0.774277,0.251623,0.258437],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -60 derece
@@ -16,11 +17,11 @@ MODULE KameraTest360
     CONST robtarget pFoto5 := [[-53.02,641.04,344.85],[0.576143,0.799768,-0.0420776,-0.163281],[0,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -120 derece
     CONST robtarget pFoto6 := [[-53.57,641.71,345.01],[0.545612,0.73024,-0.189766,-0.364756],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -150 derece
     CONST robtarget pFoto7 := [[-52.77,642.81,345.24],[0.477914,0.610947,-0.32451,-0.541327],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -180 derece
-    CONST robtarget pFoto8 := [[-50.49,643.26,345.11],[0.1897268,0.3649064,0.5455117,0.7302494],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +30 derece (TAHMIN - ogretilen deger +80 derecedeydi)
-    CONST robtarget pFoto9 := [[-49.540,641.048,341.166],[0.0420852,0.1633263,0.5761366,0.7997624],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +60 derece
+    CONST robtarget pFoto8 := [[-50.49,643.26,345.11],[0.1897268,0.3649064,0.5455117,0.7302494],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +30 derece (gercek eksenden hesaplandi; verilen deger +80 derecedeydi)
+    CONST robtarget pFoto9 := [[-51.07,643.78,345.37],[0.0420311,0.1634950,0.5760787,0.7997725],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +60 derece (gercek eksenden hesaplandi)
     CONST robtarget pFoto10 := [[-52.25,644.29,345.86],[0.108464,0.0492315,-0.567399,-0.814782],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece
     CONST robtarget pFoto11 := [[-53.15,643.22,344.42],[0.251616,0.25843,-0.519996,-0.774279],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +120 derece
-    CONST robtarget pFoto12 := [[-49.540,641.048,341.166],[-0.3776314,-0.4500283,0.4371488,0.6810066],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +150 derece
+    CONST robtarget pFoto12 := [[-53.20,643.14,345.41],[0.3776262,0.4500229,-0.4371541,-0.6810097],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +150 derece (gercek eksenden hesaplandi)
 
     CONST num nSira{12} := [10,11,12,7,6,5,4,3,2,1,8,9];
     CONST num nUc := 89.945;     ! lens ucu -> tup merkezi
@@ -40,7 +41,7 @@ MODULE KameraTest360
         ConfJ \Off;
         MoveJ RelTool(pFoto10, 0, 0, -nGeri), v100, fine, tKamera;   ! bekleme noktasi (zaten oradaysa hareket yok)
         FOR i FROM 1 TO 12 DO
-            TriggL RelTool(Foto(nSira{i}), 0, 0, -nUc), vTara, trFoto, z1, tUc;
+            TriggL RelTool(Foto(nSira{i}), 0, 0, -nUc), vTara, trFoto, z0, tUc;   ! z0: foto aninda noktadan en fazla 0.3 mm
         ENDFOR
         IDelete iFoto;
         ! Ayni yaydan hizla geri +90'a (kablo cozulur, bilek her cevrimde ayni yerden baslar), sonra disari
