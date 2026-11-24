@@ -38,8 +38,10 @@ MODULE KameraTest360
         nFoto := 0;
         CONNECT iFoto WITH FotoTrap;
         TriggInt trFoto, 0, iFoto;
-        ConfJ \Off;
-        MoveJ RelTool(pFoto10, 0, 0, -nGeri), v100, fine, tKamera;   ! bekleme noktasi (zaten oradaysa hareket yok)
+        ! ConfJ\On: bekleme noktasina pFoto10'un OGRETILMIS konfigurasyonuyla ([0,1,-1,0], J4 +90..+180) gider.
+        ! \Off iken robot bilegi ters cozumu secip J4'u ters yone, sinira kadar donduruyordu.
+        ConfJ \On;
+        MoveJ RelTool(pFoto10, 0, 0, -nGeri), v100, fine, tKamera;   ! bekleme noktasi
         FOR i FROM 1 TO 12 DO
             TriggL RelTool(Foto(nSira{i}), 0, 0, -nUc), vTara, trFoto, z1, tUc;
         ENDFOR
@@ -55,7 +57,7 @@ MODULE KameraTest360
     ! Ogretme: ayni yol, her fotoda durur -> ince ayar -> o satirda ModPos
     PROC Ogret()
         Hazirla;
-        ConfJ \Off;
+        ConfJ \On;
         MoveJ RelTool(pFoto10, 0, 0, -nGeri), v50, fine, tKamera;
         MoveL pFoto10, v20, fine, tKamera;
         Stop;
