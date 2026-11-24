@@ -44,7 +44,7 @@ MODULE KameraTest360
     ! HIZLAR (robot kendi eksen hiz sinirinda daha yavas gidebilir; kamera fps'ine gore ayarlayin)
     VAR speeddata vTara := [150,90,5000,1000];    ! tarama: 90 derece/s -> 30 derece ~0.33 s, 330 derece ~3.7 s
     VAR speeddata vGecis := [300,180,5000,1000];  ! HOME <-> tarama gecisi
-    CONST num nKalkis := 30;                      ! son fotodan sonra dik kalkis (mm)
+    CONST num nKalkis := 100;                     ! son fotodan sonra dik kalkis (mm); HOME'a eklem hareketi oncesi bosluk
     ! Kamera PC baglantisi
     CONST bool bKamera := FALSE;           ! TRUE: kamera PC'sine baglan ve tetik gonder
     PERS string sPcIp := "192.168.1.10";   ! kamera PC'sinin robota bakan IP'si
@@ -73,9 +73,11 @@ MODULE KameraTest360
         FOR i FROM 2 TO 12 DO
             TriggL RelTool(Foto(nSira{i}), 0, 0, -nUc), vTara, trFoto, z1, tUc;
         ENDFOR
-        ! Dik kalkis ve HOME (durmadan)
+        ! Dik kalkis ve HOME (eklem hareketi, en yakin konfigurasyon)
         MoveL Offs(Foto(nSira{12}), 0, 0, nKalkis), vGecis, z10, tKamera;
-        MoveL pHomeKul, vGecis, fine, tKamera;
+        ConfJ \Off;
+        MoveJ pHomeKul, vGecis, fine, tKamera;
+        ConfJ \On;
         IDelete iFoto;
         IF bKamera THEN
             SocketSend sockKam \Str:="END;";
@@ -159,12 +161,16 @@ MODULE KameraTest360
         Stop;
     ENDPROC
 
-    ! Bulundugu yerden Z'de 150 mm dik kalk, sonra HOME
+    ! Bulundugu yerden Z'de 150 mm dik kalk, sonra HOME.
+    ! HOME'a eklem hareketiyle (MoveJ) ve en yakin eksen konfigurasyonuyla gider: dogrusal harekette
+    ! eksen 4 sinira takilabiliyordu.
     PROC EveDon()
         VAR robtarget p;
         ConfL \Off;
         p := CRobT(\Tool:=tKamera \WObj:=wobj0);
         MoveL Offs(p, 0, 0, 150), v50, fine, tKamera;
-        MoveL pHomeKul, v100, fine, tKamera;
+        ConfJ \Off;
+        MoveJ pHomeKul, v100, fine, tKamera;
+        ConfJ \On;
     ENDPROC
 ENDMODULE
