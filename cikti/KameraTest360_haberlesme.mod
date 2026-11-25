@@ -38,7 +38,8 @@ MODULE KameraTest360
 
     ! --- Haberlesme: ROBOT istemci, PC sunucu ---
     CONST bool bKamera := TRUE;            ! FALSE: PC'siz calisir (sadece hareket)
-    CONST string sPcIp := "192.168.125.1"; ! PC tarafindaki PC_IP ile AYNI olmali (bkz. not: 192.168.125.1 robotun MGMT adresi)
+    ! Robot IP: 192.168.212.30 (kontrolcu ag ayarlarinda verilir), PC IP: 192.168.212.1, maske 255.255.255.0
+    CONST string sPcIp := "192.168.212.1"; ! kamera PC'si (sunucu)
     CONST num nPort := 5000;
     VAR socketdev robot_soket;
     VAR string gelen_soru;
