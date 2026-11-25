@@ -7,9 +7,9 @@ MODULE KameraTest360
     !
     ! HABERLESME (Basit_Hazirlik_Haberlesme ile ayni mantik): ROBOT = ISTEMCI, PC = SUNUCU
     !   1) Robot PC'ye baglanir (sPcIp:nPort)
-    !   2) PC "HAZIR_MISIN" sorar -> robot do_Robot_Hazir := 1 yapar, "HAZIRIM" cevabi verir
+    !   2) PC "HAZIR_MISIN" sorar -> robot "HAZIRIM" cevabi verir
     !   3) Robot taramaya baslar; her foto noktasinda "KONUM<n>;" gonderir (n = pFoto numarasi)
-    !   4) Sonda "BITTI;" gonderir, baglantiyi kapatir, do_Robot_Hazir := 0
+    !   4) Sonda "BITTI;" gonderir, baglantiyi kapatir
     PERS tooldata tKamera := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];  ! TCP = tup merkezi
 
     ! 12 foto noktasi (tKamera). pFoto1-7, 10, 11: kullanicinin ince ayarli degerleri.
@@ -49,7 +49,6 @@ MODULE KameraTest360
 
     PROC main()
         VAR num i;
-        SetDO do_Robot_Hazir, 0;
         Hazirla;
         nFoto := 0;
         IF bKamera PcBaglan;
@@ -69,10 +68,8 @@ MODULE KameraTest360
             SocketSend robot_soket \Str:="BITTI;";
             SocketClose robot_soket;
         ENDIF
-        SetDO do_Robot_Hazir, 0;
         TPWrite "Toplam foto: " \Num:=nFoto;
     ERROR
-        SetDO do_Robot_Hazir, 0;
         SocketClose robot_soket;
         TPWrite "Hata, ERRNO: " + NumToStr(ERRNO, 0);
         Stop;
@@ -87,7 +84,6 @@ MODULE KameraTest360
         SocketReceive robot_soket \Str:=gelen_soru \Time:=60;
         IF StrMatch(gelen_soru, 1, "HAZIR_MISIN") <= StrLen(gelen_soru) THEN
             TPWrite "PC sordu: Hazir misin?";
-            SetDO do_Robot_Hazir, 1;
             SocketSend robot_soket \Str:="HAZIRIM\0D\0A";
             TPWrite "PC'ye HAZIRIM gonderildi.";
         ELSE
@@ -97,7 +93,6 @@ MODULE KameraTest360
             Stop;
         ENDIF
     ERROR
-        SetDO do_Robot_Hazir, 0;
         SocketClose robot_soket;
         TPWrite "PC haberlesme hatasi, ERRNO: " + NumToStr(ERRNO, 0);
         Stop;
