@@ -49,8 +49,8 @@ MODULE KameraTest360
     VAR intnum iFoto;
     VAR num nFoto;
 
+    ! FOR dongu sayaci (k) RAPID'de otomatik tanimlanir, ayrica VAR ile tanimlanmaz.
     PROC main()
-        VAR num i;
         Hazirla;
         nFoto := 0;
         bPcAcik := FALSE;
@@ -59,12 +59,12 @@ MODULE KameraTest360
         TriggInt trFoto, 0, iFoto;
         ConfJ \On;
         MoveJ RelTool(pFoto10, 0, 0, -nGeri), v100, fine, tKamera;   ! bekleme noktasi
-        FOR i FROM 1 TO 12 DO
-            TriggL Foto(nSira{i}), vTara, trFoto, zFoto, tKamera;
+        FOR k FROM 1 TO 12 DO
+            TriggL Foto(nSira{k}), vTara, trFoto, zFoto, tKamera;
         ENDFOR
         IDelete iFoto;
-        FOR i FROM 11 TO 1 STEP -1 DO
-            MoveL Foto(nSira{i}), vGecis, z10, tKamera;
+        FOR k FROM 11 TO 1 STEP -1 DO
+            MoveL Foto(nSira{k}), vGecis, z10, tKamera;
         ENDFOR
         MoveL RelTool(pFoto10, 0, 0, -nGeri), vGecis, fine, tKamera;
         IF bKamera PcKapat;
@@ -137,8 +137,8 @@ MODULE KameraTest360
         SingArea \Wrist;
     ENDPROC
 
-    FUNC robtarget Foto(num i)
-        TEST i
+    FUNC robtarget Foto(num nNo)
+        TEST nNo
         CASE 1: RETURN pFoto1;
         CASE 2: RETURN pFoto2;
         CASE 3: RETURN pFoto3;
