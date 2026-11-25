@@ -7,7 +7,7 @@ MODULE KameraTest360
     !
     ! HABERLESME (Basit_Hazirlik_Haberlesme ile ayni mantik): ROBOT = ISTEMCI, PC = SUNUCU
     !   1) Robot PC'ye baglanir (sPcIp:nPort)
-    !   2) PC "HAZIR_MISIN" sorar -> robot "HAZIRIM" cevabi verir
+    !   2) PC "HAZIR_MISIN" sorar -> robot "HAZIRIM" cevabi verir (PC 5 s bekler)
     !   3) Robot taramaya baslar; her foto noktasinda "KONUM<n>;" gonderir (n = pFoto numarasi)
     !   4) Sonda "BITTI;" gonderir, baglantiyi kapatir
     PERS tooldata tKamera := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];  ! TCP = tup merkezi
@@ -38,10 +38,11 @@ MODULE KameraTest360
 
     ! --- Haberlesme: ROBOT istemci, PC sunucu ---
     CONST bool bKamera := TRUE;            ! FALSE: PC'siz calisir (sadece hareket)
-    CONST string sPcIp := "192.168.212.1"; ! KAMERA PC'SININ IP'si (robotun kendi IP'si DEGIL)
+    CONST string sPcIp := "192.168.125.1"; ! PC tarafindaki PC_IP ile AYNI olmali (bkz. not: 192.168.125.1 robotun MGMT adresi)
     CONST num nPort := 5000;
     VAR socketdev robot_soket;
     VAR string gelen_soru;
+    VAR bool bPcAcik := FALSE;             ! PC baglantisi acik mi (PC kapatirsa robot durmaz, sadece gondermeyi birakir)
 
     VAR triggdata trFoto;
     VAR intnum iFoto;
@@ -51,6 +52,7 @@ MODULE KameraTest360
         VAR num i;
         Hazirla;
         nFoto := 0;
+        bPcAcik := FALSE;
         IF bKamera PcBaglan;
         CONNECT iFoto WITH FotoTrap;
         TriggInt trFoto, 0, iFoto;
@@ -64,10 +66,7 @@ MODULE KameraTest360
             MoveL Foto(nSira{i}), vGecis, z10, tKamera;
         ENDFOR
         MoveL RelTool(pFoto10, 0, 0, -nGeri), vGecis, fine, tKamera;
-        IF bKamera THEN
-            SocketSend robot_soket \Str:="BITTI;";
-            SocketClose robot_soket;
-        ENDIF
+        IF bKamera PcKapat;
         TPWrite "Toplam foto: " \Num:=nFoto;
     ERROR
         SocketClose robot_soket;
@@ -84,10 +83,11 @@ MODULE KameraTest360
         SocketReceive robot_soket \Str:=gelen_soru \Time:=60;
         IF StrMatch(gelen_soru, 1, "HAZIR_MISIN") <= StrLen(gelen_soru) THEN
             TPWrite "PC sordu: Hazir misin?";
-            SocketSend robot_soket \Str:="HAZIRIM\0D\0A";
+            SocketSend robot_soket \Str:="HAZIRIM";
+            bPcAcik := TRUE;
             TPWrite "PC'ye HAZIRIM gonderildi.";
         ELSE
-            SocketSend robot_soket \Str:="ANLASILMADI\0D\0A";
+            SocketSend robot_soket \Str:="ANLASILMADI";
             TPWrite "PC'den beklenmeyen mesaj: " + gelen_soru;
             SocketClose robot_soket;
             Stop;
@@ -155,6 +155,18 @@ MODULE KameraTest360
 
     TRAP FotoTrap
         nFoto := nFoto + 1;
-        IF bKamera SocketSend robot_soket \Str:="KONUM" + NumToStr(nSira{nFoto}, 0) + ";";
+        IF bPcAcik SocketSend robot_soket \Str:="KONUM" + NumToStr(nSira{nFoto}, 0) + ";";
+    ERROR
+        bPcAcik := FALSE;      ! PC baglantiyi kapatmis: gondermeyi birak, hareket devam etsin
+        TRYNEXT;
     ENDTRAP
+
+    ! Cevrim sonu: PC hala bagliysa BITTI gonder, soketi kapat (PC kapattiysa hata vermeden gec)
+    PROC PcKapat()
+        IF bPcAcik SocketSend robot_soket \Str:="BITTI;";
+        SocketClose robot_soket;
+        bPcAcik := FALSE;
+    ERROR
+        TRYNEXT;
+    ENDPROC
 ENDMODULE
