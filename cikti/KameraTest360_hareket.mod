@@ -25,8 +25,8 @@ MODULE KameraTest360
     CONST num nKaydir := 0;      ! derece
     CONST num nGeri := 120;      ! foto noktalarina giris/cikis: optik eksen boyunca geri (mm)
     CONST num nUst := 100;       ! pTop'a giris/cikis: optik eksen boyunca geri (mm)
-    VAR speeddata vScan := [150,90,5000,1000];
-    VAR speeddata vTransfer := [300,180,5000,1000];
+    VAR speeddata vScan := [100,60,5000,1000];       ! tarama: 60 derece/s (onceki 90)
+    VAR speeddata vTransfer := [200,120,5000,1000];  ! gecis: 200 mm/s, 120 derece/s (onceki 300 / 180)
     CONST zonedata zPhoto := [FALSE,5,5,5,0.5,5,0.5];
 
     PROC main()
@@ -58,7 +58,7 @@ MODULE KameraTest360
         ConfJ \On;
         MoveJ RelTool(pTop, 0, 0, -nUst), vTransfer, z10, tCam;
         ConfL \Off;
-        MoveL pTop, v100, fine, tCam;
+        MoveL pTop, v50, fine, tCam;
         MoveL RelTool(pTop, 0, 0, -nUst), vTransfer, z10, tCam;
         EveGit;
     ENDPROC
