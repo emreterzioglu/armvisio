@@ -39,12 +39,10 @@ MODULE KameraTest360
 
     ! PROG1: pHome_Base -> 12 nokta (tek yon) -> pPhoto12'de biter
     PROC Prog1()
-        ! Giris 0 derece (pPhoto3, OGRETILMIS konfigurasyon) uzerinden: eksen 4 her cevrimde ayni daldan baslar
+        ! Giris dogrudan pPhoto1'e (+60): konfigurasyonu [1,-1,0,0], pPhoto3 ile ayni eksen 4 ceyregi
         ConfJ \On;
-        MoveJ RelTool(Photo(3), 0, 0, -nGeri), vTransfer, z10, tCam;
+        MoveJ RelTool(Photo(1), 0, 0, -nGeri), vTransfer, z10, tCam;
         ConfL \Off;
-        MoveL Photo(3), vTransfer, z5, tCam;
-        MoveL Photo(2), vTransfer, z5, tCam;
         MoveL Photo(1), vTransfer, fine, tCam;
         FOR k FROM 2 TO 11 DO
             MoveL Photo(k), vScan, zPhoto, tCam;
