@@ -42,7 +42,8 @@ MODULE KameraTest360
 
 
     CONST num nKaydir := 0;      ! derece
-    CONST num nGeri := 120;      ! foto noktalarina giris/cikis: optik eksen boyunca geri (mm)
+    CONST num nGeri := 120;      ! foto/radyus noktalarindan cikis: optik eksen boyunca geri (mm)
+    CONST num nGiris := 40;      ! PROG1 girisi: pPhoto1'in optik eksen boyunca bu kadar gerisinden durmadan girer (mm)
     CONST num nUst := 100;       ! pTop'a giris/cikis: optik eksen boyunca geri (mm)
     CONST num nEvTol := 5;       ! robot pHome_Base'e bu mesafeden (mm) yakinsa "evde" sayilir
     VAR speeddata vScan := [100,60,5000,1000];
@@ -77,7 +78,7 @@ MODULE KameraTest360
     PROC Prog1()
         nKonum := KON_BILINMIYOR;
         ConfJ \On;
-        MoveJ RelTool(Photo(1), 0, 0, -nGeri), vTransfer, z10, tCam;
+        MoveJ RelTool(Photo(1), 0, 0, -nGiris), vTransfer, z20, tCam;   ! evden dogrudan, kisa giris (durmaz)
         ConfL \Off;
         MoveL Photo(1), vTransfer, fine, tCam;
         FOR k FROM 2 TO 11 DO
