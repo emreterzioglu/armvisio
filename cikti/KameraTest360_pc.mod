@@ -93,7 +93,7 @@ MODULE KameraTest360
         ENDIF
         TPWrite "PC komutlari bekleniyor.";
         WHILE TRUE DO
-            IF bOlayKanali AND NOT bOlayBagli bBagli := FALSE;   ! konum kanali koptuysa ikisini yeniden kur
+            IF bOlayKanali AND (NOT bOlayBagli) bBagli := FALSE;   ! konum kanali koptuysa ikisini yeniden kur
             IF NOT bBagli PcBaglan;
             sKomut := KomutAl();
             IF sKomut <> "" KomutIsle sKomut;
@@ -273,7 +273,7 @@ MODULE KameraTest360
             SocketClose skOlay;
             SocketCreate skPc;
             SocketConnect skPc, sPcIp, nPort \Time:=5;
-            IF NOT bHata AND bOlayKanali THEN
+            IF (NOT bHata) AND bOlayKanali THEN
                 SocketCreate skOlay;
                 SocketConnect skOlay, sPcIp, nOlayPort \Time:=5;
             ENDIF
