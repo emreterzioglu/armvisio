@@ -10,9 +10,7 @@ MODULE KameraTest360
     !   PROG2_BITTI_MI -> DEVAM / PROG2_BITTI
     !   HOME_GIT       -> pHome_Base'e gider, varinca HOME_GITTIM
     ! Hareket surerken gelen PROGx_BITTI_MI sorularini zaman kesmesi (TRAP + SocketPeek) cevaplar.
-    ! ANLIK KONUM (ikinci soket, PC port 5001): robot her foto noktasindan GECERKEN kendiliginden gonderir:
-    !   PROG1: P1_KONUM1 ... P1_KONUM12      PROG2: P2_KONUM12 ... P2_KONUM1   (sonu CR LF)
-    !   PC bu kanali robot_olay_dinleyici.py ile dinler ve mesaj gelince fotografi ceker.
+    ! Robot kendiliginden mesaj GONDERMEZ (PC kodu tabloda olmayan mesaji kabul etmez).
     ! Eksen 4 son noktada sikisirsa nKaydir'i artirin (ornek 10): 12 nokta tup ekseni etrafinda birlikte kayar.
     PERS tooldata tCam := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];  ! TCP = tup merkezi
 
@@ -65,17 +63,6 @@ MODULE KameraTest360
     VAR bool bProg2Bitti := FALSE;
     VAR num nI;                          ! hareket dongusu sayaci
 
-    ! --- Anlik konum kanali (robot -> PC) ---
-    CONST bool bOlayKanali := TRUE;      ! FALSE: konum mesaji gonderilmez, sadece 5000 kullanilir
-    CONST num nOlayPort := 5001;
-    VAR socketdev skOlay;
-    VAR bool bOlayBagli := FALSE;
-    VAR triggdata trFoto;
-    VAR intnum iFoto;
-    VAR string sFotoOn;                  ! "P1_KONUM" / "P2_KONUM"
-    VAR num nFotoNo;                     ! gonderilecek nokta numarasi
-    VAR num nFotoAdim;                   ! +1 (PROG1) / -1 (PROG2)
-
     ! Robotun bilinen konumu
     CONST num KON_BILINMIYOR := 0;
     CONST num KON_EV := 1;
@@ -93,7 +80,6 @@ MODULE KameraTest360
         ENDIF
         TPWrite "PC komutlari bekleniyor.";
         WHILE TRUE DO
-            IF bOlayKanali AND (NOT bOlayBagli) bBagli := FALSE;   ! konum kanali koptuysa ikisini yeniden kur
             IF NOT bBagli PcBaglan;
             sKomut := KomutAl();
             IF sKomut <> "" KomutIsle sKomut;
@@ -163,15 +149,12 @@ MODULE KameraTest360
         MoveJ RelTool(Photo(1), 0, 0, -nGeri), vTransfer, z10, tCam;
         ConfL \Off;
         MoveL Photo(1), vTransfer, fine, tCam;
-        FotoAc "P1_KONUM", 1, 1;
-        FotoGonder;                      ! P1_KONUM1: robot noktada duruyor
         nI := 2;
         WHILE nI <= 11 DO
-            TriggL Photo(nI), vScan, trFoto, zPhoto, tCam;   ! noktadan gecerken P1_KONUMn
+            MoveL Photo(nI), vScan, zPhoto, tCam;
             nI := nI + 1;
         ENDWHILE
-        TriggL Photo(12), vScan, trFoto, fine, tCam;
-        FotoKapat;
+        MoveL Photo(12), vScan, fine, tCam;
         nKonum := KON_P12;
     ENDPROC
 
@@ -197,15 +180,12 @@ MODULE KameraTest360
         IF nKonum <> KON_F12 Konum2Git;
         nKonum := KON_BILINMIYOR;
         ConfL \Off;
-        FotoAc "P2_KONUM", 12, -1;
-        FotoGonder;                      ! P2_KONUM12: robot F12'de duruyor
         nI := 11;
         WHILE nI >= 2 DO
-            TriggL Filet(nI), vScan, trFoto, zPhoto, tCam;
+            MoveL Filet(nI), vScan, zPhoto, tCam;
             nI := nI - 1;
         ENDWHILE
-        TriggL Filet(1), vScan, trFoto, fine, tCam;
-        FotoKapat;
+        MoveL Filet(1), vScan, fine, tCam;
         nKonum := KON_F1;
     ENDPROC
 
@@ -268,20 +248,13 @@ MODULE KameraTest360
     PROC PcBaglan()
         WHILE NOT bBagli DO
             bHata := FALSE;
-            bOlayBagli := FALSE;
             SocketClose skPc;
-            SocketClose skOlay;
             SocketCreate skPc;
             SocketConnect skPc, sPcIp, nPort \Time:=5;
-            IF (NOT bHata) AND bOlayKanali THEN
-                SocketCreate skOlay;
-                SocketConnect skOlay, sPcIp, nOlayPort \Time:=5;
-            ENDIF
             IF bHata THEN
-                WaitTime 2;          ! PC programi (veya 5001 dinleyicisi) acik degil: 2 s sonra tekrar dene
+                WaitTime 2;          ! PC programi acik degil: 2 s sonra tekrar dene
             ELSE
                 bBagli := TRUE;
-                bOlayBagli := bOlayKanali;
                 TPWrite "PC'ye baglandi.";
             ENDIF
         ENDWHILE
@@ -289,34 +262,6 @@ MODULE KameraTest360
         bHata := TRUE;
         TRYNEXT;
     ENDPROC
-
-    ! ---------------- Anlik konum (robot -> PC, port 5001) ----------------
-    ! On ek, ilk numara ve adim ayarlanir; TriggL ile her noktada FotoTrap calisir
-    PROC FotoAc(string sOn, num nIlk, num nAdim)
-        sFotoOn := sOn;
-        nFotoNo := nIlk;
-        nFotoAdim := nAdim;
-        IDelete iFoto;
-        CONNECT iFoto WITH FotoTrap;
-        TriggInt trFoto, 0, iFoto;       ! 0 mm: noktanin kendisinde (zone varsa kose ortasinda)
-    ENDPROC
-
-    PROC FotoKapat()
-        IDelete iFoto;
-    ENDPROC
-
-    ! Ornek mesaj: "P1_KONUM5" + CR LF. Numara NumToStr ile metne cevrilir.
-    PROC FotoGonder()
-        IF bOlayBagli SocketSend skOlay \Str:=sFotoOn + NumToStr(nFotoNo, 0) + "\0D\0A";
-        nFotoNo := nFotoNo + nFotoAdim;
-    ERROR
-        bOlayBagli := FALSE;     ! kanal koptu: hareket durmaz, numara yine ilerler
-        TRYNEXT;
-    ENDPROC
-
-    TRAP FotoTrap
-        FotoGonder;
-    ENDTRAP
 
     ! Gelen komutu dondurur; zaman asiminda veya kopmada "" dondurur
     FUNC string KomutAl()
