@@ -226,8 +226,8 @@ MODULE KameraTest360
         nKonum := KON_EV;
     ENDPROC
 
+    ! tCam program icinde YAZILMAZ (degeri sadece yukaridaki PERS tanimindan gelir)
     PROC Ready()
-        tCam := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
         ConfL \Off;
         SingArea \Wrist;
     ENDPROC
