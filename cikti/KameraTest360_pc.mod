@@ -5,8 +5,8 @@ MODULE KameraTest360
     !   HAZIR_MISIN    -> HAZIRIM / DEGILIM        (oto mod + robot evde)
     !   START1         -> START1_OK, sonra PROG1 (pHome_Base -> 12 foto noktasi, pPhoto12'de biter)
     !   PROG1_BITTI_MI -> DEVAM (hareket surerken) / PROG1_BITTI
-    !   KONUM2_GIT     -> pTop'a gider, varinca KONUM2_GITTIM
-    !   START2         -> START2_OK, sonra PROG2 (TANIMLI DEGIL: robot pTop'ta bekler)
+    !   KONUM2_GIT     -> radyuslu ust kenarin ilk noktasina (F12, +90) gider, varinca KONUM2_GITTIM
+    !   START2         -> START2_OK, sonra PROG2: radyus etrafinda ters yonde F12 -> F1 (12 nokta, 30 derece arayla)
     !   PROG2_BITTI_MI -> DEVAM / PROG2_BITTI
     !   HOME_GIT       -> pHome_Base'e gider, varinca HOME_GITTIM
     ! Hareket surerken gelen PROGx_BITTI_MI sorularini zaman kesmesi (TRAP + SocketPeek) cevaplar.
@@ -26,14 +26,22 @@ MODULE KameraTest360
     CONST robtarget pPhoto11 := [[-53.15,643.22,344.42],[0.251616,0.25843,-0.519996,-0.774279],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +120 derece (eski pos11)
     CONST robtarget pPhoto12 := [[-52.25,644.29,345.86],[0.108464,0.0492315,-0.567399,-0.814782],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece (eski pos10)
 
-    ! VARSAYIM: pHome_Base ve pTop tCam secili iken kaydedildi
-    PERS robtarget pTop := [[-51.73,641.4,349.93],[0.116902,-0.990114,-0.0773209,0.00553204],[1,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+    ! VARSAYIM: pHome_Base tCam secili iken kaydedildi
     PERS robtarget pHome_Base := [[-14.54,276.64,339.62],[0.0207356,-0.998668,-0.0468316,0.0062025],[1,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
 
 
     CONST num nKaydir := 0;      ! derece
     CONST num nGeri := 120;      ! foto noktalarina giris/cikis: optik eksen boyunca geri (mm)
-    CONST num nUst := 100;       ! pTop'a giris/cikis: optik eksen boyunca geri (mm)
+
+    ! --- PROG2: tup ust ucundaki radyuslu kenar (CAD: yay yaricapi 2.656 mm, 0-58 derece) ---
+    ! Her F noktasi, ayni numarali pPhoto noktasindan uretilir (tool y = tup ekseni, yukari):
+    !   tup ekseni boyunca nH + nHduz{k} yukari, kameraya dogru nIc, tool x etrafinda nEgim egim (asagi bakar)
+    ! nH CAD'den TAHMIN: gercek parca CAD'den kayik oldugu icin FiletKontrol ile dogrulanmali.
+    VAR num nH := 9.06;          ! foto yuksekliginden radyus ortasina (mm)
+    CONST num nIc := 0.16;       ! kameraya dogru kaydirma (mm)
+    CONST num nEgim := 29;       ! radyus ortasinin yuzey normali: yatayin 29 derece ustu
+    ! ogretilen 12 noktayi ayni eksen yuksekligine getirir (mm, ogretilen noktalardan hesaplandi)
+    CONST num nHduz{12} := [-0.01,-0.01,0.27,-0.12,-0.29,-0.38,-0.2,-0.06,0,0,0.95,-0.15];
     CONST num nEvTol := 5;       ! robot pHome_Base'e bu mesafeden (mm) yakinsa "evde" sayilir
     VAR speeddata vScan := [100,60,5000,1000];
     VAR speeddata vTransfer := [200,120,5000,1000];
@@ -57,7 +65,8 @@ MODULE KameraTest360
     CONST num KON_BILINMIYOR := 0;
     CONST num KON_EV := 1;
     CONST num KON_P12 := 2;
-    CONST num KON_TOP := 3;
+    CONST num KON_F12 := 3;
+    CONST num KON_F1 := 4;
     VAR num nKonum := 0;
 
     PROC main()
@@ -145,30 +154,57 @@ MODULE KameraTest360
         nKonum := KON_P12;
     ENDPROC
 
-    ! KONUM2: pPhoto12'den (veya evden) pTop'a
+    ! KONUM2: pPhoto12'den (veya evden) radyus noktasi F12'ye
     PROC Konum2Git()
-        IF nKonum = KON_TOP RETURN;
-        IF nKonum = KON_BILINMIYOR EveGit;
-        IF nKonum = KON_P12 MoveL RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;
+        IF nKonum = KON_F12 RETURN;
+        IF nKonum <> KON_P12 AND nKonum <> KON_EV EveGit;
+        IF nKonum = KON_EV THEN
+            ConfJ \On;
+            MoveJ RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;   ! ogretilmis konfigurasyon
+        ELSE
+            MoveL RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;
+        ENDIF
         nKonum := KON_BILINMIYOR;
-        ConfJ \On;
-        MoveJ RelTool(pTop, 0, 0, -nUst), vTransfer, z10, tCam;
         ConfL \Off;
-        MoveL pTop, v50, fine, tCam;
-        nKonum := KON_TOP;
+        MoveL RelTool(Filet(12), 0, 0, -nGeri), vTransfer, z10, tCam;
+        MoveL Filet(12), v50, fine, tCam;
+        nKonum := KON_F12;
     ENDPROC
 
-    ! PROG2: TANIMLI DEGIL. Robot pTop'ta bekler; PC bu sirada fotografi ceker.
+    ! PROG2: radyuslu kenar etrafinda PROG1'in tersi yonde (eksen 4 geri sarilir): F12 -> F1
     PROC Prog2()
-        ! PROG2'de yapilacak hareket netlesince buraya eklenecek
+        IF nKonum <> KON_F12 Konum2Git;
+        nKonum := KON_BILINMIYOR;
+        ConfL \Off;
+        FOR k FROM 11 TO 2 STEP -1 DO
+            MoveL Filet(k), vScan, zPhoto, tCam;
+        ENDFOR
+        MoveL Filet(1), vScan, fine, tCam;
+        nKonum := KON_F1;
+    ENDPROC
+
+    ! KONTROL (PC'siz, manuel modda): her radyus noktasinda durur. Kamerada radyus ortasi
+    ! goruntunun merkezinde mi bakin; degilse nH'yi degistirip tekrar deneyin.
+    PROC FiletKontrol()
+        Ready;
+        EveGit;
+        Konum2Git;
+        Stop;
+        FOR k FROM 11 TO 1 STEP -1 DO
+            MoveL Filet(k), v20, fine, tCam;
+            Stop;
+        ENDFOR
+        EveGit;
     ENDPROC
 
     ! Bulundugu yerden optik eksen boyunca geri cekilip pHome_Base'e
     PROC EveGit()
         IF NOT EvdeMi() THEN
             TEST nKonum
-            CASE KON_TOP:
-                MoveL RelTool(pTop, 0, 0, -nUst), vTransfer, z10, tCam;
+            CASE KON_F12:
+                MoveL RelTool(Filet(12), 0, 0, -nGeri), vTransfer, z10, tCam;
+            CASE KON_F1:
+                MoveL RelTool(Filet(1), 0, 0, -nGeri), vTransfer, z10, tCam;
             CASE KON_P12:
                 MoveL RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;
             DEFAULT:
@@ -299,5 +335,10 @@ MODULE KameraTest360
         DEFAULT: p := pPhoto12;
         ENDTEST
         RETURN RelTool(p, 0, 0, 0 \Ry:=nKaydir);
+    ENDFUNC
+
+    ! Radyus noktasi k: Photo(k)'dan tup ekseni boyunca yukari + egim (TCP etrafinda doner)
+    FUNC robtarget Filet(num nNo)
+        RETURN RelTool(Photo(nNo), 0, nH + nHduz{nNo}, -nIc \Rx:=nEgim);
     ENDFUNC
 ENDMODULE
