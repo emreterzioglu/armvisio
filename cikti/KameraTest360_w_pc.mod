@@ -167,8 +167,9 @@ MODULE KameraTest360
         nKonum := KON_P12;
     ENDPROC
 
-    ! KONUM2: pTop'un ustune yaklasir (calisan koddaki gibi), oradan PROG1'in baslangic girisine (pPhoto1, ogretilmis
-    ! konfigurasyon, eksen 4 PROG1 basindaki dala doner), sonra sadece 29 derece egilip radyusun ilk noktasina.
+    ! KONUM2: pTop'un ustune yaklasir, eve ugrar (durmadan), PROG1 girisine gider (pPhoto1, ogretilmis konfigurasyon),
+    ! sonra sadece 29 derece egilip radyusun ilk noktasina. Buyuk donusler, calisan koddaki ile ayni
+    ! iki eklem hareketi (pTop ustu -> ev, ev -> PROG1 girisi) ile yapilir.
     ! (Eski surumde pTop'tan pTopPhoto12'ye dogrusal gecis 179 derecelik donustu: yon belirsiz -> sapitma.)
     PROC Konum2Git()
         IF nKonum = KON_T1 RETURN;
@@ -177,7 +178,8 @@ MODULE KameraTest360
         nKonum := KON_BILINMIYOR;
         ConfJ \On;
         MoveJ RelTool(pTop, 0, 0, -nUst), vTransfer, z10, tCam;          ! pTop yaklasma noktasi (eskisiyle ayni)
-        MoveJ RelTool(Photo(1), 0, 0, -nGeri), vTransfer, z10, tCam;     ! PROG1 girisi ile ayni nokta ve konfigurasyon
+        MoveJ pHome_Base, vTransfer, z50, tCam;                          ! pTop ustu -> ev (eski HOME_GIT yolu)
+        MoveJ RelTool(Photo(1), 0, 0, -nGeri), vTransfer, z10, tCam;     ! ev -> PROG1 girisi (START1 ile ayni hareket)
         ConfL \Off;
         MoveL RelTool(TopPhoto(1), 0, 0, -nGeri), vTransfer, z10, tCam;  ! 29 derece egim, radyus +60 noktasinin 120 mm gerisi
         MoveL TopPhoto(1), v50, fine, tCam;
