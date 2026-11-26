@@ -5,7 +5,7 @@ MODULE KameraTest360
     !   HAZIR_MISIN    -> HAZIRIM / DEGILIM        (oto mod + robot evde)
     !   START1         -> START1_OK, sonra PROG1 (pHome_Base -> 12 foto noktasi, pPhoto12'de biter)
     !   PROG1_BITTI_MI -> DEVAM (hareket surerken) / PROG1_BITTI
-    !   KONUM2_GIT     -> radyuslu ust kenarin ilk noktasina (pTopPhoto12, +90) gider, varinca KONUM2_GITTIM
+    !   KONUM2_GIT     -> pTop'un ustune yaklasir, oradan radyuslu ust kenarin ilk noktasina (pTopPhoto12, +90), varinca KONUM2_GITTIM
     !   START2         -> START2_OK, sonra PROG2: radyus etrafinda PROG1'in tersi yonde pTopPhoto12 -> pTopPhoto1
     !   PROG2_BITTI_MI -> DEVAM / PROG2_BITTI
     !   HOME_GIT       -> pHome_Base'e gider, varinca HOME_GITTIM
@@ -44,7 +44,7 @@ MODULE KameraTest360
     CONST robtarget pTopPhoto12 := [[-51.51,642.19,351.29],[0.0926826,0.0748206,-0.7533313,-0.6467641],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece, radyus ortasi
 
     ! VARSAYIM: pHome_Base ve pTop tCam secili iken kaydedildi
-    ! pTop hareketlerde artik kullanilmiyor; radyus noktalarinin yuksekligi bundan hesaplandi (referans olarak duruyor)
+    ! pTop: KONUM2_GIT'te sadece yaklasma noktasi (pTop'a inilmez); radyus noktalarinin yuksekligi de bundan hesaplandi
     PERS robtarget pTop := [[-51.73,641.4,349.93],[0.116902,-0.990114,-0.0773209,0.00553204],[1,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
     PERS robtarget pHome_Base := [[-14.54,276.64,339.62],[0.0207356,-0.998668,-0.0468316,0.0062025],[1,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
 
@@ -165,19 +165,16 @@ MODULE KameraTest360
         nKonum := KON_P12;
     ENDPROC
 
-    ! KONUM2: pPhoto12'den (veya evden) radyusun ilk noktasi pTopPhoto12'ye
+    ! KONUM2: calisan koddaki gibi pTop'un ustune yaklasir (pTop'a inmez), oradan radyusun ilk noktasi pTopPhoto12'ye
     PROC Konum2Git()
         IF nKonum = KON_T12 RETURN;
-        IF nKonum <> KON_P12 AND nKonum <> KON_EV EveGit;
-        IF nKonum = KON_EV THEN
-            ConfJ \On;
-            MoveJ RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;   ! ogretilmis konfigurasyon
-        ELSE
-            MoveL RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;
-        ENDIF
+        IF nKonum = KON_BILINMIYOR OR nKonum = KON_T1 EveGit;
+        IF nKonum = KON_P12 MoveL RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;
         nKonum := KON_BILINMIYOR;
+        ConfJ \On;
+        MoveJ RelTool(pTop, 0, 0, -nUst), vTransfer, z10, tCam;          ! pTop yaklasma noktasi (eskisiyle ayni)
         ConfL \Off;
-        MoveL RelTool(TopPhoto(12), 0, 0, -nGeri), vTransfer, z10, tCam;
+        MoveL RelTool(TopPhoto(12), 0, 0, -nGeri), vTransfer, z10, tCam;  ! radyus +90 noktasinin 120 mm gerisi
         MoveL TopPhoto(12), v50, fine, tCam;
         nKonum := KON_T12;
     ENDPROC
