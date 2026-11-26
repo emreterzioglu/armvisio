@@ -52,6 +52,7 @@ MODULE KameraTest360
     VAR intnum iSorgu;
     VAR bool bProg1Bitti := FALSE;
     VAR bool bProg2Bitti := FALSE;
+    VAR num nI;                          ! Prog1 dongu sayaci (FOR k yerine: sistemde baska bir 'k' tanimli olabilir)
 
     ! Robotun bilinen konumu
     CONST num KON_BILINMIYOR := 0;
@@ -138,9 +139,11 @@ MODULE KameraTest360
         MoveJ RelTool(Photo(1), 0, 0, -nGeri), vTransfer, z10, tCam;
         ConfL \Off;
         MoveL Photo(1), vTransfer, fine, tCam;
-        FOR k FROM 2 TO 11 DO
-            MoveL Photo(k), vScan, zPhoto, tCam;
-        ENDFOR
+        nI := 2;
+        WHILE nI <= 11 DO
+            MoveL Photo(nI), vScan, zPhoto, tCam;
+            nI := nI + 1;
+        ENDWHILE
         MoveL Photo(12), vScan, fine, tCam;
         nKonum := KON_P12;
     ENDPROC
