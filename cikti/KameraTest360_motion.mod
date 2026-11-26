@@ -1,7 +1,7 @@
 MODULE KameraTest360
     ! SADECE HAREKET TESTI (PC haberlesmesi yok, girdi beklemez). Hareket kodu KameraTest360_w_pc.mod ile BIREBIR ayni.
-    ! Sira: pHome_Base -> PROG1 (pPhoto1 +60 -> pPhoto12 +90) -> KONUM2 (pTop ustu -> pPhoto1 girisi -> pTopPhoto1)
-    !       -> PROG2 (radyus, pTopPhoto1 +60 -> pTopPhoto12 +90, PROG1 ile ayni yon) -> pHome_Base
+    ! Sira: pHome_Base -> PROG1 (pPhoto1 +60 -> pPhoto12 +90) -> KONUM2 (yukari kalk + 29 derece egil -> pTopPhoto12)
+    !       -> PROG2 (radyus, ters yonde pTopPhoto12 +90 -> pTopPhoto1 +60) -> geri cekil -> pHome_Base
     ! Eksen 4 son noktada sikisirsa nKaydir'i artirin (ornek 10): 12 nokta tup ekseni etrafinda birlikte kayar.
     PERS tooldata tCam := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];  ! TCP = tup merkezi
 
@@ -87,49 +87,51 @@ MODULE KameraTest360
         nKonum := KON_P12;
     ENDPROC
 
-    ! KONUM2: pTop'un ustune yaklasir, eve ugrar (durmadan), PROG1 girisine gider (pPhoto1, ogretilmis konfigurasyon),
-    ! sonra sadece 29 derece egilip radyusun ilk noktasina. Buyuk donusler, calisan koddaki ile ayni
-    ! iki eklem hareketi (pTop ustu -> ev, ev -> PROG1 girisi) ile yapilir.
-    ! (Eski surumde pTop'tan pTopPhoto12'ye dogrusal gecis 179 derecelik donustu: yon belirsiz -> sapitma.)
+    ! KONUM2: PROG1 bittigi yerden (pPhoto12, +90) EN KISA gecis: geri cekilmeden, TCP ayni eksende 6 mm yukari
+    ! kalkar ve kamera sadece 29 derece asagi egilir -> pTopPhoto12 (+90). Kamera kendi ekseninde donmez,
+    ! eksen 4 yerinde kalir (konfigurasyon degismez).
     PROC Konum2Git()
-        IF nKonum = KON_T1 RETURN;
-        IF nKonum = KON_BILINMIYOR OR nKonum = KON_T12 EveGit;
-        IF nKonum = KON_P12 MoveL RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;
+        IF nKonum = KON_T12 RETURN;
+        IF nKonum <> KON_P12 THEN
+            ! normal akista olmaz (PROG1 sonrasi robot pPhoto12'dedir); evden veya bilinmeyen yerden:
+            IF nKonum <> KON_EV EveGit;
+            ConfJ \On;
+            MoveJ RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;   ! pPhoto12 ogretilmis konfigurasyon
+            ConfL \Off;
+            MoveL Photo(12), v50, fine, tCam;
+        ENDIF
         nKonum := KON_BILINMIYOR;
-        ConfJ \On;
-        MoveJ RelTool(pTop, 0, 0, -nUst), vTransfer, z10, tCam;          ! pTop yaklasma noktasi (eskisiyle ayni)
-        MoveJ pHome_Base, vTransfer, z50, tCam;                          ! pTop ustu -> ev (eski HOME_GIT yolu)
-        MoveJ RelTool(Photo(1), 0, 0, -nGeri), vTransfer, z10, tCam;     ! ev -> PROG1 girisi (START1 ile ayni hareket)
         ConfL \Off;
-        MoveL RelTool(TopPhoto(1), 0, 0, -nGeri), vTransfer, z10, tCam;  ! 29 derece egim, radyus +60 noktasinin 120 mm gerisi
-        MoveL TopPhoto(1), v50, fine, tCam;
+        MoveL TopPhoto(12), v50, fine, tCam;                             ! yukari kalk + 29 derece egil
+        nKonum := KON_T12;
+    ENDPROC
+
+    ! PROG2: radyus etrafinda PROG1'in TERSI yonde (eksen 4 PROG1'de sardigi kadar geri acilir):
+    ! pTopPhoto12 (+90) -> ... -> pTopPhoto1 (+60). Bitiste robot PROG1 baslangicinin ustundedir.
+    PROC Prog2()
+        IF nKonum <> KON_T12 Konum2Git;
+        nKonum := KON_BILINMIYOR;
+        ConfL \Off;
+        FOR k FROM 11 TO 2 STEP -1 DO
+            MoveL TopPhoto(k), vScan, zPhoto, tCam;
+        ENDFOR
+        MoveL TopPhoto(1), vScan, fine, tCam;
         nKonum := KON_T1;
     ENDPROC
 
-    ! PROG2: radyus etrafinda PROG1 ile ayni yonde: pTopPhoto1 (+60) -> pTopPhoto12 (+90)
-    PROC Prog2()
-        IF nKonum <> KON_T1 Konum2Git;
-        nKonum := KON_BILINMIYOR;
-        ConfL \Off;
-        FOR k FROM 2 TO 11 DO
-            MoveL TopPhoto(k), vScan, zPhoto, tCam;
-        ENDFOR
-        MoveL TopPhoto(12), vScan, fine, tCam;
-        nKonum := KON_T12;
-    ENDPROC
-
-    ! KONTROL (PC'siz, manuel modda, PP to Routine): radyus noktalarinda tek tek durur.
-    ! Goruntu net ve radyus ortasi merkezde mi bakin; gerekirse o satirda ModPos.
+    ! KONTROL (PC'siz, manuel modda, PP to Routine): gercek akistaki gibi PROG1'i yapar, radyusa kalkar,
+    ! radyus noktalarinda tek tek durur. Goruntu net ve radyus ortasi merkezde mi bakin; gerekirse ModPos.
     PROC FiletKontrol()
         Ready;
         EveGit;
+        Prog1;
         Konum2Git;
         Stop;
-        FOR k FROM 2 TO 12 DO
+        FOR k FROM 11 TO 1 STEP -1 DO
             MoveL TopPhoto(k), v20, fine, tCam;
             Stop;
         ENDFOR
-        nKonum := KON_T12;
+        nKonum := KON_T1;
         EveGit;
     ENDPROC
 
