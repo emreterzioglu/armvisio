@@ -5,8 +5,10 @@ MODULE KameraTest360
     !   HAZIR_MISIN    -> HAZIRIM / DEGILIM        (oto mod + robot evde)
     !   START1         -> START1_OK, sonra PROG1 (pHome_Base -> 12 foto noktasi, pPhoto12'de biter)
     !   PROG1_BITTI_MI -> DEVAM (hareket surerken) / PROG1_BITTI
-    !   KONUM2_GIT     -> pTop'un ustune yaklasir, oradan radyuslu ust kenarin ilk noktasina (pTopPhoto12, +90), varinca KONUM2_GITTIM
-    !   START2         -> START2_OK, sonra PROG2: radyus etrafinda PROG1'in tersi yonde pTopPhoto12 -> pTopPhoto1
+    !   KONUM2_GIT     -> pTop'un ustune yaklasir, PROG1 baslangicinin girisine (pPhoto1, ogretilmis konf.) gecer,
+    !                     29 derece egilerek radyusun ilk noktasina (pTopPhoto1, +60) iner, varinca KONUM2_GITTIM
+    !   START2         -> START2_OK, sonra PROG2: radyus etrafinda PROG1 ile AYNI yonde (ustten saat yonu)
+    !                     pTopPhoto1 (+60) -> ... -> pTopPhoto12 (+90). Iki uc da robota en yakin iki nokta.
     !   PROG2_BITTI_MI -> DEVAM / PROG2_BITTI
     !   HOME_GIT       -> pHome_Base'e gider, varinca HOME_GITTIM
     ! Hareket surerken gelen PROGx_BITTI_MI sorularini zaman kesmesi (TRAP + SocketPeek) cevaplar.
@@ -27,22 +29,21 @@ MODULE KameraTest360
     CONST robtarget pPhoto12 := [[-52.25,644.29,345.86],[0.108464,0.0492315,-0.567399,-0.814782],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece (eski pos10)
 
     ! 12 RADYUS noktasi (tup ust ucundaki radyuslu kenar, kamera radyus ortasina dik, yatayin 29 derece asagisina bakar).
-    ! Kamera kendi optik ekseni etrafinda 180 derece CEVRIK (goruntu ters): pTop'a 68, eve 81 derece (cevirmeden 179 / 157).
     ! Ayni numarali pPhoto noktasindan hesaplandi: tup ekseni boyunca 6.02 mm (+ nokta duzeltmesi) yukari, 0.16 mm kameraya dogru,
-    ! tool x etrafinda 29 derece, tool z etrafinda 180 derece. 6.02 mm, NET goruntu veren pTop'tan olculen ust yuzey yuksekliginden geliyor (CAD degil).
+    ! tool x etrafinda 29 derece. 6.02 mm, NET goruntu veren pTop'tan olculen ust yuzey yuksekliginden geliyor (CAD degil).
     ! Gerekirse ModPos ile tek tek ince ayar yapilabilir.
-    CONST robtarget pTopPhoto1 := [[-50.39,641.64,350.95],[-0.6300593,0.7579763,-0.1688110,-0.0002436],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +60 derece, radyus ortasi
-    CONST robtarget pTopPhoto2 := [[-49.88,641.15,350.71],[-0.5704040,0.7109757,-0.4007870,0.0923183],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +30 derece, radyus ortasi
-    CONST robtarget pTopPhoto3 := [[-48.73,640.48,350.33],[-0.4710329,0.6163411,-0.6048726,0.1799467],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! 0 derece, radyus ortasi
-    CONST robtarget pTopPhoto4 := [[-49.76,639.77,350.20],[-0.3411420,0.4782814,-0.7687678,0.2527154],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -30 derece, radyus ortasi
-    CONST robtarget pTopPhoto5 := [[-50.41,639.28,350.11],[-0.1872038,0.3083156,-0.8798099,0.3095655],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -60 derece, radyus ortasi
-    CONST robtarget pTopPhoto6 := [[-51.30,639.47,350.29],[-0.0220249,0.1160532,-0.9310780,0.3451671],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -90 derece, radyus ortasi
-    CONST robtarget pTopPhoto7 := [[-52.27,639.25,350.34],[0.1475447,-0.0816196,-0.9185478,0.3575454],[0,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -120 derece, radyus ortasi
-    CONST robtarget pTopPhoto8 := [[-52.73,639.83,350.61],[0.3056239,-0.2750490,-0.8435901,0.3453953],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -150 derece, radyus ortasi
-    CONST robtarget pTopPhoto9 := [[-51.89,640.85,350.86],[0.4428337,-0.4497111,-0.7111471,0.3097224],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -180 derece, radyus ortasi
-    CONST robtarget pTopPhoto10 := [[-52.32,641.10,351.01],[-0.5498633,0.5937409,0.5302386,-0.2529212],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +150 derece, radyus ortasi
-    CONST robtarget pTopPhoto11 := [[-52.20,640.79,350.89],[0.6194196,-0.6972967,-0.3131979,0.1788957],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +120 derece, radyus ortasi
-    CONST robtarget pTopPhoto12 := [[-51.51,642.19,351.29],[0.6467641,-0.7533313,-0.0748206,0.0926826],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece, radyus ortasi
+    CONST robtarget pTopPhoto1 := [[-50.39,641.64,350.95],[-0.0002436,0.1688110,0.7579763,0.6300593],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +60 derece, radyus ortasi
+    CONST robtarget pTopPhoto2 := [[-49.88,641.15,350.71],[0.0923183,0.4007870,0.7109757,0.5704040],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +30 derece, radyus ortasi
+    CONST robtarget pTopPhoto3 := [[-48.73,640.48,350.33],[0.1799467,0.6048726,0.6163411,0.4710329],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! 0 derece, radyus ortasi
+    CONST robtarget pTopPhoto4 := [[-49.76,639.77,350.20],[0.2527154,0.7687678,0.4782814,0.3411420],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -30 derece, radyus ortasi
+    CONST robtarget pTopPhoto5 := [[-50.41,639.28,350.11],[0.3095655,0.8798099,0.3083156,0.1872038],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -60 derece, radyus ortasi
+    CONST robtarget pTopPhoto6 := [[-51.30,639.47,350.29],[0.3451671,0.9310780,0.1160532,0.0220249],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -90 derece, radyus ortasi
+    CONST robtarget pTopPhoto7 := [[-52.27,639.25,350.34],[0.3575454,0.9185478,-0.0816196,-0.1475447],[0,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -120 derece, radyus ortasi
+    CONST robtarget pTopPhoto8 := [[-52.73,639.83,350.61],[0.3453953,0.8435901,-0.2750490,-0.3056239],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -150 derece, radyus ortasi
+    CONST robtarget pTopPhoto9 := [[-51.89,640.85,350.86],[0.3097224,0.7111471,-0.4497111,-0.4428337],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -180 derece, radyus ortasi
+    CONST robtarget pTopPhoto10 := [[-52.32,641.10,351.01],[-0.2529212,-0.5302386,0.5937409,0.5498633],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +150 derece, radyus ortasi
+    CONST robtarget pTopPhoto11 := [[-52.20,640.79,350.89],[0.1788957,0.3131979,-0.6972967,-0.6194196],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +120 derece, radyus ortasi
+    CONST robtarget pTopPhoto12 := [[-51.51,642.19,351.29],[0.0926826,0.0748206,-0.7533313,-0.6467641],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece, radyus ortasi
 
     ! VARSAYIM: pHome_Base ve pTop tCam secili iken kaydedildi
     ! pTop: KONUM2_GIT'te sadece yaklasma noktasi (pTop'a inilmez); radyus noktalarinin yuksekligi de bundan hesaplandi
@@ -166,30 +167,33 @@ MODULE KameraTest360
         nKonum := KON_P12;
     ENDPROC
 
-    ! KONUM2: calisan koddaki gibi pTop'un ustune yaklasir (pTop'a inmez), oradan radyusun ilk noktasi pTopPhoto12'ye
+    ! KONUM2: pTop'un ustune yaklasir (calisan koddaki gibi), oradan PROG1'in baslangic girisine (pPhoto1, ogretilmis
+    ! konfigurasyon, eksen 4 PROG1 basindaki dala doner), sonra sadece 29 derece egilip radyusun ilk noktasina.
+    ! (Eski surumde pTop'tan pTopPhoto12'ye dogrusal gecis 179 derecelik donustu: yon belirsiz -> sapitma.)
     PROC Konum2Git()
-        IF nKonum = KON_T12 RETURN;
-        IF nKonum = KON_BILINMIYOR OR nKonum = KON_T1 EveGit;
+        IF nKonum = KON_T1 RETURN;
+        IF nKonum = KON_BILINMIYOR OR nKonum = KON_T12 EveGit;
         IF nKonum = KON_P12 MoveL RelTool(Photo(12), 0, 0, -nGeri), vTransfer, z10, tCam;
         nKonum := KON_BILINMIYOR;
         ConfJ \On;
         MoveJ RelTool(pTop, 0, 0, -nUst), vTransfer, z10, tCam;          ! pTop yaklasma noktasi (eskisiyle ayni)
+        MoveJ RelTool(Photo(1), 0, 0, -nGeri), vTransfer, z10, tCam;     ! PROG1 girisi ile ayni nokta ve konfigurasyon
         ConfL \Off;
-        MoveL RelTool(TopPhoto(12), 0, 0, -nGeri), vTransfer, z10, tCam;  ! radyus +90 noktasinin 120 mm gerisi
-        MoveL TopPhoto(12), v50, fine, tCam;
-        nKonum := KON_T12;
+        MoveL RelTool(TopPhoto(1), 0, 0, -nGeri), vTransfer, z10, tCam;  ! 29 derece egim, radyus +60 noktasinin 120 mm gerisi
+        MoveL TopPhoto(1), v50, fine, tCam;
+        nKonum := KON_T1;
     ENDPROC
 
-    ! PROG2: radyus etrafinda PROG1'in tersi yonde (eksen 4 geri sarilir): pTopPhoto12 -> pTopPhoto1
+    ! PROG2: radyus etrafinda PROG1 ile ayni yonde: pTopPhoto1 (+60) -> pTopPhoto12 (+90)
     PROC Prog2()
-        IF nKonum <> KON_T12 Konum2Git;
+        IF nKonum <> KON_T1 Konum2Git;
         nKonum := KON_BILINMIYOR;
         ConfL \Off;
-        FOR k FROM 11 TO 2 STEP -1 DO
+        FOR k FROM 2 TO 11 DO
             MoveL TopPhoto(k), vScan, zPhoto, tCam;
         ENDFOR
-        MoveL TopPhoto(1), vScan, fine, tCam;
-        nKonum := KON_T1;
+        MoveL TopPhoto(12), vScan, fine, tCam;
+        nKonum := KON_T12;
     ENDPROC
 
     ! KONTROL (PC'siz, manuel modda, PP to Routine): radyus noktalarinda tek tek durur.
@@ -199,11 +203,11 @@ MODULE KameraTest360
         EveGit;
         Konum2Git;
         Stop;
-        FOR k FROM 11 TO 1 STEP -1 DO
+        FOR k FROM 2 TO 12 DO
             MoveL TopPhoto(k), v20, fine, tCam;
             Stop;
         ENDFOR
-        nKonum := KON_T1;
+        nKonum := KON_T12;
         EveGit;
     ENDPROC
 
