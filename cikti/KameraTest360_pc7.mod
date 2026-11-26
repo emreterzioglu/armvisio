@@ -27,21 +27,22 @@ MODULE KameraTest360
     CONST robtarget pPhoto12 := [[-52.25,644.29,345.86],[0.108464,0.0492315,-0.567399,-0.814782],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece (eski pos10)
 
     ! 12 RADYUS noktasi (tup ust ucundaki radyuslu kenar, kamera radyus ortasina dik, yatayin 29 derece asagisina bakar).
+    ! Kamera kendi optik ekseni etrafinda 180 derece CEVRIK (goruntu ters): pTop'a 68, eve 81 derece (cevirmeden 179 / 157).
     ! Ayni numarali pPhoto noktasindan hesaplandi: tup ekseni boyunca 6.02 mm (+ nokta duzeltmesi) yukari, 0.16 mm kameraya dogru,
-    ! tool x etrafinda 29 derece. 6.02 mm, NET goruntu veren pTop'tan olculen ust yuzey yuksekliginden geliyor (CAD degil).
+    ! tool x etrafinda 29 derece, tool z etrafinda 180 derece. 6.02 mm, NET goruntu veren pTop'tan olculen ust yuzey yuksekliginden geliyor (CAD degil).
     ! Gerekirse ModPos ile tek tek ince ayar yapilabilir.
-    CONST robtarget pTopPhoto1 := [[-50.39,641.64,350.95],[-0.0002436,0.1688110,0.7579763,0.6300593],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +60 derece, radyus ortasi
-    CONST robtarget pTopPhoto2 := [[-49.88,641.15,350.71],[0.0923183,0.4007870,0.7109757,0.5704040],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +30 derece, radyus ortasi
-    CONST robtarget pTopPhoto3 := [[-48.73,640.48,350.33],[0.1799467,0.6048726,0.6163411,0.4710329],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! 0 derece, radyus ortasi
-    CONST robtarget pTopPhoto4 := [[-49.76,639.77,350.20],[0.2527154,0.7687678,0.4782814,0.3411420],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -30 derece, radyus ortasi
-    CONST robtarget pTopPhoto5 := [[-50.41,639.28,350.11],[0.3095655,0.8798099,0.3083156,0.1872038],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -60 derece, radyus ortasi
-    CONST robtarget pTopPhoto6 := [[-51.30,639.47,350.29],[0.3451671,0.9310780,0.1160532,0.0220249],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -90 derece, radyus ortasi
-    CONST robtarget pTopPhoto7 := [[-52.27,639.25,350.34],[0.3575454,0.9185478,-0.0816196,-0.1475447],[0,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -120 derece, radyus ortasi
-    CONST robtarget pTopPhoto8 := [[-52.73,639.83,350.61],[0.3453953,0.8435901,-0.2750490,-0.3056239],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -150 derece, radyus ortasi
-    CONST robtarget pTopPhoto9 := [[-51.89,640.85,350.86],[0.3097224,0.7111471,-0.4497111,-0.4428337],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -180 derece, radyus ortasi
-    CONST robtarget pTopPhoto10 := [[-52.32,641.10,351.01],[-0.2529212,-0.5302386,0.5937409,0.5498633],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +150 derece, radyus ortasi
-    CONST robtarget pTopPhoto11 := [[-52.20,640.79,350.89],[0.1788957,0.3131979,-0.6972967,-0.6194196],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +120 derece, radyus ortasi
-    CONST robtarget pTopPhoto12 := [[-51.51,642.19,351.29],[0.0926826,0.0748206,-0.7533313,-0.6467641],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece, radyus ortasi
+    CONST robtarget pTopPhoto1 := [[-50.39,641.64,350.95],[-0.6300593,0.7579763,-0.1688110,-0.0002436],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +60 derece, radyus ortasi
+    CONST robtarget pTopPhoto2 := [[-49.88,641.15,350.71],[-0.5704040,0.7109757,-0.4007870,0.0923183],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +30 derece, radyus ortasi
+    CONST robtarget pTopPhoto3 := [[-48.73,640.48,350.33],[-0.4710329,0.6163411,-0.6048726,0.1799467],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! 0 derece, radyus ortasi
+    CONST robtarget pTopPhoto4 := [[-49.76,639.77,350.20],[-0.3411420,0.4782814,-0.7687678,0.2527154],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -30 derece, radyus ortasi
+    CONST robtarget pTopPhoto5 := [[-50.41,639.28,350.11],[-0.1872038,0.3083156,-0.8798099,0.3095655],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -60 derece, radyus ortasi
+    CONST robtarget pTopPhoto6 := [[-51.30,639.47,350.29],[-0.0220249,0.1160532,-0.9310780,0.3451671],[1,-1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -90 derece, radyus ortasi
+    CONST robtarget pTopPhoto7 := [[-52.27,639.25,350.34],[0.1475447,-0.0816196,-0.9185478,0.3575454],[0,0,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -120 derece, radyus ortasi
+    CONST robtarget pTopPhoto8 := [[-52.73,639.83,350.61],[0.3056239,-0.2750490,-0.8435901,0.3453953],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -150 derece, radyus ortasi
+    CONST robtarget pTopPhoto9 := [[-51.89,640.85,350.86],[0.4428337,-0.4497111,-0.7111471,0.3097224],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! -180 derece, radyus ortasi
+    CONST robtarget pTopPhoto10 := [[-52.32,641.10,351.01],[-0.5498633,0.5937409,0.5302386,-0.2529212],[1,-1,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +150 derece, radyus ortasi
+    CONST robtarget pTopPhoto11 := [[-52.20,640.79,350.89],[0.6194196,-0.6972967,-0.3131979,0.1788957],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +120 derece, radyus ortasi
+    CONST robtarget pTopPhoto12 := [[-51.51,642.19,351.29],[0.6467641,-0.7533313,-0.0748206,0.0926826],[0,1,-1,0],[9E9,9E9,9E9,9E9,9E9,9E9]];   ! +90 derece, radyus ortasi
 
     ! VARSAYIM: pHome_Base ve pTop tCam secili iken kaydedildi
     ! pTop: KONUM2_GIT'te sadece yaklasma noktasi (pTop'a inilmez); radyus noktalarinin yuksekligi de bundan hesaplandi
