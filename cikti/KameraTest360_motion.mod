@@ -59,6 +59,14 @@ MODULE KameraTest360
     CONST num KON_T1 := 5;       ! pTopPhoto1'de
     VAR num nKonum := 0;
 
+    ! --- Alan tarayicisi: alana biri girince YAVASLA (durma yok) ---
+    ! Tarayici OSSD: 1 = alan bos, 0 = alanda biri var. Gercek sinyal adi I/O listesindeki ile ayni olmali.
+    ! Bu RAPID kismi sadece hizi dusurur; guvenlik denetimi SafeMove'daki hiz denetimidir (TSP).
+    CONST string sAlanSinyal := "Scalable_IO1_0_DI1";
+    CONST num nYavasYuzde := 40;         ! alanda biri varken hiz carpani (%)
+    VAR signaldi diAlan;
+    VAR intnum iAlan;
+
     PROC main()
         Ready;
         IF EvdeMi() THEN
@@ -163,7 +171,29 @@ MODULE KameraTest360
         tCam := [TRUE,[[-67.511,-19.6,235.945],[0.7071068,0,0,-0.7071068]],[0.5,[-45,0,30],[1,0,0,0],0,0,0]];
         ConfL \Off;
         SingArea \Wrist;
+        AlanIzleAc;
     ENDPROC
+
+    ! Tarayici sinyalini izler: her degisimde (giris / cikis) AlanTrap calisir
+    PROC AlanIzleAc()
+        AliasIO sAlanSinyal, diAlan;
+        IDelete iAlan;
+        CONNECT iAlan WITH AlanTrap;
+        ISignalDI diAlan, 2, iAlan;      ! 2 = her iki yon
+        AlanHiz;                         ! baslangictaki durumu hemen uygula
+    ENDPROC
+
+    PROC AlanHiz()
+        IF DInput(diAlan) = 0 THEN
+            SpeedRefresh nYavasYuzde;    ! alanda biri var: yavasla (devam eden harekete de uygulanir)
+        ELSE
+            SpeedRefresh 100;            ! alan bos: normal hiz
+        ENDIF
+    ENDPROC
+
+    TRAP AlanTrap
+        AlanHiz;
+    ENDTRAP
 
     FUNC bool EvdeMi()
         VAR robtarget p;
